@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <title>Sky Hopper NYC</title>
 
@@ -20,14 +20,14 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #050914;
+      background: #030610;
       font-family: Arial, Helvetica, sans-serif;
     }
 
     body {
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
     }
 
     #game {
@@ -38,7 +38,7 @@
       max-height: 900px;
       overflow: hidden;
       background: #080d20;
-      box-shadow: 0 0 45px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 0 45px rgba(0, 0, 0, 0.7);
     }
 
     canvas {
@@ -56,14 +56,12 @@
 
     #score {
       position: absolute;
-      top: 30px;
+      top: 28px;
       left: 0;
       width: 100%;
-
       color: white;
       font-size: 54px;
       font-weight: 900;
-
       text-shadow:
         3px 3px 0 #050505,
         -2px 2px 0 #050505,
@@ -74,28 +72,19 @@
       position: absolute;
       left: 50%;
       top: 43%;
-
       transform: translate(-50%, -50%);
-
       width: 86%;
       padding: 28px 22px;
-
       border-radius: 18px;
-
-      background: rgba(5, 8, 20, 0.88);
-      border: 1px solid rgba(255,255,255,0.15);
-
+      background: rgba(5, 8, 20, 0.92);
+      border: 1px solid rgba(255,255,255,0.14);
       color: white;
-
-      box-shadow:
-        0 15px 45px rgba(0,0,0,0.5),
-        inset 0 0 30px rgba(80,120,255,0.05);
-
+      box-shadow: 0 15px 45px rgba(0,0,0,0.55);
       pointer-events: auto;
     }
 
     #message h1 {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       font-size: 40px;
     }
 
@@ -109,20 +98,14 @@
     #startButton,
     #restartButton {
       margin-top: 17px;
-
       padding: 14px 34px;
-
       border: none;
       border-radius: 12px;
-
       background: #ffd447;
       color: #161616;
-
       font-size: 20px;
       font-weight: bold;
-
       cursor: pointer;
-
       box-shadow: 0 5px 0 #a87e00;
     }
 
@@ -143,14 +126,11 @@
 
     #hint {
       position: absolute;
-      bottom: 18px;
+      bottom: 17px;
       left: 0;
       width: 100%;
-
-      color: rgba(255,255,255,0.8);
-
+      color: rgba(255,255,255,0.75);
       font-size: 13px;
-
       text-shadow: 1px 1px 3px #000;
     }
   </style>
@@ -171,34 +151,22 @@
       <div id="startScreen">
         <h1>🌃 Sky Hopper NYC</h1>
 
-        <p>
-          Fly through the New York skyline!
-        </p>
+        <p>Fly through the New York skyline!</p>
 
-        <p>
-          Tap, click, or press <b>SPACE</b> to fly.
-        </p>
+        <p>Tap, click, or press <b>SPACE</b> to fly.</p>
 
-        <button id="startButton">
-          START FLYING
-        </button>
+        <button id="startButton">START FLYING</button>
       </div>
 
       <div id="gameOver">
 
         <h1>💥 CRASH!</h1>
 
-        <p>
-          You flew <b id="finalScore">0</b> buildings.
-        </p>
+        <p>You flew through <b id="finalScore">0</b> buildings.</p>
 
-        <p id="best">
-          Best: 0
-        </p>
+        <p id="best">Best: 0</p>
 
-        <button id="restartButton">
-          FLY AGAIN
-        </button>
+        <button id="restartButton">FLY AGAIN</button>
 
       </div>
 
@@ -213,7 +181,6 @@
 </div>
 
 <script>
-
 (() => {
 
   "use strict";
@@ -228,30 +195,17 @@
   const game = document.getElementById("game");
 
   const scoreEl = document.getElementById("score");
-
   const message = document.getElementById("message");
-
-  const startScreen =
-    document.getElementById("startScreen");
-
-  const gameOverScreen =
-    document.getElementById("gameOver");
-
-  const startButton =
-    document.getElementById("startButton");
-
-  const restartButton =
-    document.getElementById("restartButton");
-
-  const finalScore =
-    document.getElementById("finalScore");
-
-  const bestEl =
-    document.getElementById("best");
+  const startScreen = document.getElementById("startScreen");
+  const gameOverScreen = document.getElementById("gameOver");
+  const startButton = document.getElementById("startButton");
+  const restartButton = document.getElementById("restartButton");
+  const finalScore = document.getElementById("finalScore");
+  const bestEl = document.getElementById("best");
 
 
   // ============================================================
-  // GAME SETTINGS
+  // GAME STATE
   // ============================================================
 
   let W = 400;
@@ -267,34 +221,27 @@
     Number(localStorage.getItem("skyHopperNYCBest")) || 0;
 
   let buildings = [];
-
   let particles = [];
 
-  let stars = [];
+  let backgroundStars = [];
+  let distantBuildings = [];
 
   let lastTime = 0;
-
   let buildingTimer = 0;
 
-  let cityScroll = 0;
+  let skylineReady = false;
 
 
   // ============================================================
-  // BIRD / PLAYER
+  // PLAYER
   // ============================================================
 
   const bird = {
-
     x: 100,
-
     y: 300,
-
     radius: 17,
-
     velocity: 0,
-
     rotation: 0
-
   };
 
 
@@ -303,19 +250,12 @@
   // ============================================================
 
   const physics = {
-
     gravity: 1550,
-
     flap: -470,
-
     buildingSpeed: 190,
-
-    buildingWidth: 72,
-
+    buildingWidth: 76,
     gap: 185,
-
     spawnEvery: 1.45
-
   };
 
 
@@ -325,8 +265,7 @@
 
   function resize() {
 
-    const rect =
-      game.getBoundingClientRect();
+    const rect = game.getBoundingClientRect();
 
     const dpr =
       Math.min(window.devicePixelRatio || 1, 2);
@@ -356,70 +295,187 @@
     );
 
     groundY =
-      H - Math.max(
-        65,
-        H * 0.10
-      );
+      H - Math.max(65, H * 0.10);
 
     if (state === "ready") {
-
       bird.x = W * 0.25;
-
       bird.y = H * 0.45;
-
     }
 
-    createStars();
+    createBackground();
+
+  }
+
+  window.addEventListener("resize", resize);
+
+
+  // ============================================================
+  // SEEDED RANDOM NUMBER
+  //
+  // This is important:
+  // Background details are generated once instead of using
+  // Math.random() every frame. This prevents flashing.
+  // ============================================================
+
+  function seededRandom(seed) {
+
+    let x =
+      Math.sin(seed * 12.9898) *
+      43758.5453;
+
+    return x -
+      Math.floor(x);
 
   }
 
 
-  window.addEventListener(
-    "resize",
-    resize
-  );
-
-
   // ============================================================
-  // STARS
+  // CREATE STATIC BACKGROUND
   // ============================================================
 
-  function createStars() {
+  function createBackground() {
 
-    stars = [];
+    backgroundStars = [];
+    distantBuildings = [];
 
-    const count =
-      Math.floor(W * H / 8000);
+    // ----------------------------
+    // STARS
+    // ----------------------------
 
-    for (let i = 0; i < count; i++) {
+    const starCount =
+      Math.floor(
+        W * H / 7000
+      );
 
-      stars.push({
+    for (let i = 0; i < starCount; i++) {
 
-        x: Math.random() * W,
+      backgroundStars.push({
+
+        x:
+          seededRandom(i + 10) * W,
 
         y:
-          Math.random() *
+          seededRandom(i + 100) *
           groundY *
-          0.75,
+          0.70,
 
         size:
-          Math.random() * 1.7 + 0.5,
+          0.5 +
+          seededRandom(i + 200) * 1.5,
 
         brightness:
-          Math.random() * 0.7 + 0.3,
-
-        twinkle:
-          Math.random() * Math.PI * 2
+          0.35 +
+          seededRandom(i + 300) * 0.5
 
       });
 
     }
 
+
+    // ----------------------------
+    // DISTANT SKYLINE
+    // ----------------------------
+
+    const buildingWidth = 45;
+
+    let x = -10;
+
+    let index = 0;
+
+    while (x < W + 50) {
+
+      const height =
+        100 +
+        seededRandom(index + 500) * 190;
+
+      const width =
+        30 +
+        seededRandom(index + 600) * 25;
+
+      const type =
+        Math.floor(
+          seededRandom(index + 700) * 4
+        );
+
+      const windows = [];
+
+      const columns =
+        Math.max(
+          1,
+          Math.floor(width / 13)
+        );
+
+      const rows =
+        Math.max(
+          2,
+          Math.floor(height / 19)
+        );
+
+      for (
+        let row = 0;
+        row < rows;
+        row++
+      ) {
+
+        for (
+          let col = 0;
+          col < columns;
+          col++
+        ) {
+
+          const windowSeed =
+            index * 1000 +
+            row * 100 +
+            col;
+
+          const lit =
+            seededRandom(
+              windowSeed + 800
+            ) > 0.42;
+
+          if (lit) {
+
+            windows.push({
+
+              x: 7 + col * 13,
+
+              y:
+                10 +
+                row * 19
+
+            });
+
+          }
+
+        }
+
+      }
+
+      distantBuildings.push({
+
+        x,
+        width,
+        height,
+        type,
+        windows
+
+      });
+
+      x +=
+        buildingWidth +
+        seededRandom(index + 900) * 8;
+
+      index++;
+
+    }
+
+    skylineReady = true;
+
   }
 
 
   // ============================================================
-  // RESET
+  // RESET PLAYER
   // ============================================================
 
   function resetBird() {
@@ -431,14 +487,13 @@
       H * 0.45;
 
     bird.velocity = 0;
-
     bird.rotation = 0;
 
   }
 
 
   // ============================================================
-  // START
+  // START GAME
   // ============================================================
 
   function startGame() {
@@ -448,12 +503,9 @@
     score = 0;
 
     buildings = [];
-
     particles = [];
 
     buildingTimer = 0;
-
-    cityScroll = 0;
 
     resetBird();
 
@@ -467,7 +519,7 @@
 
 
   // ============================================================
-  // GAME OVER
+  // END GAME
   // ============================================================
 
   function endGame() {
@@ -506,7 +558,7 @@
     createParticles(
       bird.x,
       bird.y,
-      25
+      24
     );
 
   }
@@ -525,8 +577,8 @@
       physics.flap;
 
     createParticles(
-      bird.x - bird.radius,
-      bird.y + 5,
+      bird.x - 18,
+      bird.y + 6,
       4
     );
 
@@ -539,23 +591,18 @@
 
   function handleInput(e) {
 
-    if (e)
+    if (e) {
       e.preventDefault();
+    }
 
     if (state === "ready") {
-
       startGame();
-
       return;
-
     }
 
     if (state === "gameover") {
-
       startGame();
-
       return;
-
     }
 
     flap();
@@ -612,7 +659,7 @@
 
 
   // ============================================================
-  // CREATE BUILDING GAP
+  // CREATE BUILDING OBSTACLE
   // ============================================================
 
   function spawnBuildingPair() {
@@ -628,7 +675,7 @@
       minTop +
       Math.random() *
       Math.max(
-        30,
+        35,
         maxTop - minTop
       );
 
@@ -648,6 +695,35 @@
         )
       ];
 
+
+    // Each obstacle gets its own static
+    // window layout.
+
+    const topWindows =
+      createBuildingWindows(
+        physics.buildingWidth,
+        topHeight,
+        style,
+        Math.floor(
+          Math.random() * 100000
+        )
+      );
+
+    const bottomHeight =
+      groundY -
+      (topHeight + physics.gap);
+
+    const bottomWindows =
+      createBuildingWindows(
+        physics.buildingWidth,
+        bottomHeight,
+        style,
+        Math.floor(
+          Math.random() * 100000
+        )
+      );
+
+
     buildings.push({
 
       x:
@@ -659,13 +735,118 @@
       gap:
         physics.gap,
 
-      style:
+      style,
 
-        style,
+      topWindows,
+
+      bottomWindows,
 
       counted: false
 
     });
+
+  }
+
+
+  // ============================================================
+  // STATIC BUILDING WINDOWS
+  // ============================================================
+
+  function createBuildingWindows(
+    width,
+    height,
+    style,
+    seed
+  ) {
+
+    const windows = [];
+
+    if (height < 45)
+      return windows;
+
+
+    const columns =
+      Math.max(
+        2,
+        Math.floor(width / 15)
+      );
+
+    const rows =
+      Math.floor(
+        (height - 18) / 18
+      );
+
+
+    for (
+      let row = 0;
+      row < rows;
+      row++
+    ) {
+
+      for (
+        let col = 0;
+        col < columns;
+        col++
+      ) {
+
+        const value =
+          seededRandom(
+            seed +
+            row * 137 +
+            col * 31
+          );
+
+
+        // Some buildings have darker
+        // windows than others.
+
+        let threshold = 0.35;
+
+        if (style === "old")
+          threshold = 0.48;
+
+        if (style === "glass")
+          threshold = 0.22;
+
+
+        if (value > threshold) {
+
+          windows.push({
+
+            x:
+              7 +
+              col * 14,
+
+            y:
+              10 +
+              row * 18,
+
+            brightness:
+              0.60 +
+              seededRandom(
+                seed +
+                row * 71 +
+                col * 17 +
+                5000
+              ) * 0.35,
+
+            warm:
+              seededRandom(
+                seed +
+                row * 91 +
+                col * 23 +
+                9000
+              ) > 0.35
+
+          });
+
+        }
+
+      }
+
+    }
+
+    return windows;
 
   }
 
@@ -685,9 +866,7 @@
     }
 
 
-    // -----------------------------
-    // PLAYER PHYSICS
-    // -----------------------------
+    // Player
 
     bird.velocity +=
       physics.gravity * dt;
@@ -705,17 +884,7 @@
       );
 
 
-    // -----------------------------
-    // CITY MOVEMENT
-    // -----------------------------
-
-    cityScroll +=
-      physics.buildingSpeed * dt;
-
-
-    // -----------------------------
-    // SPAWN BUILDINGS
-    // -----------------------------
+    // Building spawning
 
     buildingTimer += dt;
 
@@ -731,9 +900,7 @@
     }
 
 
-    // -----------------------------
-    // MOVE BUILDINGS
-    // -----------------------------
+    // Move buildings
 
     for (const building of buildings) {
 
@@ -744,8 +911,8 @@
       if (
         !building.counted &&
         building.x +
-          physics.buildingWidth <
-          bird.x
+        physics.buildingWidth <
+        bird.x
       ) {
 
         building.counted = true;
@@ -758,7 +925,7 @@
         createParticles(
           bird.x,
           bird.y,
-          7
+          6
         );
 
       }
@@ -770,17 +937,12 @@
       buildings.filter(
         building =>
           building.x +
-            physics.buildingWidth >
+          physics.buildingWidth >
           -40
       );
 
 
-    // -----------------------------
-    // COLLISIONS
-    // -----------------------------
-
     checkCollisions();
-
 
     updateParticles(dt);
 
@@ -788,16 +950,14 @@
 
 
   // ============================================================
-  // COLLISION DETECTION
+  // COLLISION
   // ============================================================
 
   function checkCollisions() {
 
-    // Ceiling
-
     if (
       bird.y -
-        bird.radius <=
+      bird.radius <=
       0
     ) {
 
@@ -808,11 +968,9 @@
     }
 
 
-    // Ground
-
     if (
       bird.y +
-        bird.radius >=
+      bird.radius >=
       groundY
     ) {
 
@@ -822,8 +980,6 @@
 
     }
 
-
-    // Buildings
 
     for (const building of buildings) {
 
@@ -866,7 +1022,6 @@
       const horizontal =
         birdRight > left &&
         birdLeft < right;
-
 
       const vertical =
         birdTop < topBottom ||
@@ -912,25 +1067,24 @@
         y,
 
         vx:
-          -40 -
-          Math.random() * 80,
+          -35 -
+          Math.random() * 75,
 
         vy:
           (Math.random() - 0.5) *
           100,
 
         life:
-          0.4 +
+          0.35 +
           Math.random() *
           0.35,
 
         maxLife:
-          0.75,
+          0.7,
 
         size:
           2 +
-          Math.random() *
-          4
+          Math.random() * 3
 
       });
 
@@ -966,7 +1120,7 @@
 
 
   // ============================================================
-  // DRAW
+  // DRAW EVERYTHING
   // ============================================================
 
   function draw() {
@@ -979,11 +1133,11 @@
 
     drawDistantCity();
 
-    drawBuildings();
+    drawMainBuildings();
 
     drawParticles();
 
-    drawBird();
+    drawPlayer();
 
     drawGround();
 
@@ -991,7 +1145,7 @@
 
 
   // ============================================================
-  // NIGHT SKY
+  // SKY
   // ============================================================
 
   function drawNightSky() {
@@ -1004,22 +1158,20 @@
         H
       );
 
-
     gradient.addColorStop(
       0,
-      "#030719"
+      "#020615"
     );
 
     gradient.addColorStop(
       0.45,
-      "#0b1735"
+      "#09152f"
     );
 
     gradient.addColorStop(
       1,
-      "#172c4e"
+      "#142844"
     );
-
 
     ctx.fillStyle =
       gradient;
@@ -1040,30 +1192,16 @@
 
   function drawStars() {
 
-    const time =
-      performance.now() /
-      500;
-
-
-    for (const star of stars) {
-
-      const twinkle =
-        0.65 +
-        Math.sin(
-          time +
-          star.twinkle
-        ) *
-        0.35;
-
+    for (
+      const star
+      of backgroundStars
+    ) {
 
       ctx.globalAlpha =
-        star.brightness *
-        twinkle;
-
+        star.brightness;
 
       ctx.fillStyle =
         "#ffffff";
-
 
       ctx.beginPath();
 
@@ -1078,7 +1216,6 @@
       ctx.fill();
 
     }
-
 
     ctx.globalAlpha = 1;
 
@@ -1097,36 +1234,34 @@
     const moonY =
       H * 0.16;
 
-    const moonRadius =
+    const radius =
       Math.min(
         42,
         W * 0.095
       );
 
 
-    // Glow
+    // Soft glow
 
     const glow =
       ctx.createRadialGradient(
         moonX,
         moonY,
-        5,
+        4,
         moonX,
         moonY,
-        moonRadius * 2.7
+        radius * 2.7
       );
-
 
     glow.addColorStop(
       0,
-      "rgba(255,245,190,0.25)"
+      "rgba(255,245,190,0.22)"
     );
 
     glow.addColorStop(
       1,
       "rgba(255,245,190,0)"
     );
-
 
     ctx.fillStyle =
       glow;
@@ -1136,7 +1271,7 @@
     ctx.arc(
       moonX,
       moonY,
-      moonRadius * 2.7,
+      radius * 2.7,
       0,
       Math.PI * 2
     );
@@ -1154,7 +1289,7 @@
     ctx.arc(
       moonX,
       moonY,
-      moonRadius,
+      radius,
       0,
       Math.PI * 2
     );
@@ -1165,14 +1300,14 @@
     // Crescent shadow
 
     ctx.fillStyle =
-      "#0a1530";
+      "#09152f";
 
     ctx.beginPath();
 
     ctx.arc(
-      moonX + moonRadius * 0.35,
-      moonY - moonRadius * 0.18,
-      moonRadius * 0.88,
+      moonX + radius * 0.34,
+      moonY - radius * 0.18,
+      radius * 0.88,
       0,
       Math.PI * 2
     );
@@ -1183,143 +1318,153 @@
 
 
   // ============================================================
-  // DISTANT NYC SKYLINE
+  // DISTANT CITY
   // ============================================================
 
   function drawDistantCity() {
 
+    if (!skylineReady)
+      return;
+
+
     const base =
-      groundY - 35;
+      groundY - 30;
 
 
-    ctx.fillStyle =
-      "#08101e";
-
-
-    // Buildings
-
-    const buildings = [
-
-      [0, 150],
-      [45, 210],
-      [85, 125],
-      [120, 245],
-      [165, 175],
-      [205, 280],
-      [250, 150],
-      [285, 225],
-      [330, 180],
-      [370, 255],
-      [415, 145]
-
-    ];
-
+    // Far skyline
 
     for (
-      const [x, height]
-      of buildings
+      const building
+      of distantBuildings
     ) {
 
+      ctx.fillStyle =
+        "#080f1d";
+
       ctx.fillRect(
-        x,
-        base - height,
-        48,
-        height
+        building.x,
+        base - building.height,
+        building.width,
+        building.height
       );
+
+
+      // Static windows
+
+      for (
+        const win
+        of building.windows
+      ) {
+
+        if (
+          win.x + 4 >
+          building.width
+        )
+          continue;
+
+        if (
+          win.y + 7 >
+          building.height
+        )
+          continue;
+
+
+        ctx.fillStyle =
+          "rgba(255,204,92,0.48)";
+
+        ctx.fillRect(
+          building.x + win.x,
+          base -
+            building.height +
+            win.y,
+          4,
+          7
+        );
+
+      }
 
     }
 
 
-    // Empire State Building-style silhouette
+    // ---------------------------------
+    // Empire-State-Building-style tower
+    // ---------------------------------
 
     const center =
       W * 0.48;
 
-    const towerBottom =
+    const towerBase =
       base;
 
-    const towerTop =
-      base - 330;
-
-
     ctx.fillStyle =
-      "#060c18";
+      "#050a14";
 
 
     ctx.fillRect(
-      center - 32,
-      towerBottom - 190,
-      64,
-      190
+      center - 30,
+      towerBase - 185,
+      60,
+      185
     );
 
 
     ctx.fillRect(
-      center - 22,
-      towerBottom - 250,
-      44,
+      center - 21,
+      towerBase - 245,
+      42,
       60
     );
 
 
     ctx.fillRect(
-      center - 12,
-      towerBottom - 295,
-      24,
+      center - 11,
+      towerBase - 290,
+      22,
       45
     );
 
 
-    ctx.beginPath();
+    // Spire
 
-    ctx.moveTo(
-      center - 7,
-      towerTop + 20
+    ctx.fillRect(
+      center - 2,
+      towerBase - 320,
+      4,
+      30
     );
 
-    ctx.lineTo(
-      center,
-      towerTop
-    );
 
-    ctx.lineTo(
-      center + 7,
-      towerTop + 20
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    // Distant windows
+    // Static tower windows
 
     ctx.fillStyle =
-      "rgba(255,205,90,0.5)";
+      "rgba(255,205,100,0.42)";
 
 
     for (
-      let x = 0;
-      x < W;
-      x += 25
+      let row = 0;
+      row < 7;
+      row++
     ) {
 
       for (
-        let y = base - 25;
-        y > base - 290;
-        y -= 22
+        let col = 0;
+        col < 4;
+        col++
       ) {
 
         if (
-          Math.random() >
-          0.48
+          (row + col) % 3 !== 0
         ) {
 
           ctx.fillRect(
-            x,
-            y,
-            4,
-            7
+            center -
+            22 +
+            col * 14,
+            towerBase -
+            168 +
+            row * 20,
+            5,
+            8
           );
 
         }
@@ -1335,37 +1480,37 @@
   // MAIN BUILDINGS
   // ============================================================
 
-  function drawBuildings() {
+  function drawMainBuildings() {
 
     for (
       const building
       of buildings
     ) {
 
-      // Top building
-
       drawCityBuilding(
         building.x,
         0,
         physics.buildingWidth,
         building.top,
-        building.style
+        building.style,
+        building.topWindows,
+        true
       );
 
-
-      // Bottom building
 
       drawCityBuilding(
         building.x,
         building.top +
-          building.gap,
+        building.gap,
         physics.buildingWidth,
         groundY -
-          (
-            building.top +
-            building.gap
-          ),
-        building.style
+        (
+          building.top +
+          building.gap
+        ),
+        building.style,
+        building.bottomWindows,
+        false
       );
 
     }
@@ -1374,7 +1519,7 @@
 
 
   // ============================================================
-  // BUILDING DRAWING
+  // CITY BUILDING
   // ============================================================
 
   function drawCityBuilding(
@@ -1382,65 +1527,70 @@
     y,
     width,
     height,
-    style
+    style,
+    windows,
+    topBuilding
   ) {
 
     if (height <= 0)
       return;
 
 
-    let bodyColor =
-      "#20283a";
+    let body =
+      "#222b3d";
 
-    let edgeColor =
+    let edge =
       "#111827";
 
 
     if (style === "brick") {
 
-      bodyColor =
-        "#4b3030";
+      body =
+        "#493039";
 
-      edgeColor =
-        "#2b1d20";
+      edge =
+        "#2a1c23";
 
     }
+
 
     if (style === "glass") {
 
-      bodyColor =
-        "#18384c";
+      body =
+        "#183b50";
 
-      edgeColor =
-        "#102634";
+      edge =
+        "#102632";
 
     }
 
+
     if (style === "old") {
 
-      bodyColor =
-        "#38333c";
+      body =
+        "#37343d";
 
-      edgeColor =
+      edge =
         "#24212a";
 
     }
 
+
     if (style === "modern") {
 
-      bodyColor =
-        "#263548";
+      body =
+        "#29384b";
 
-      edgeColor =
+      edge =
         "#151f30";
 
     }
 
 
-    // Main building
+    // Main body
 
     ctx.fillStyle =
-      bodyColor;
+      body;
 
     ctx.fillRect(
       x,
@@ -1453,7 +1603,7 @@
     // Side edge
 
     ctx.fillStyle =
-      edgeColor;
+      edge;
 
     ctx.fillRect(
       x + width - 7,
@@ -1463,172 +1613,137 @@
     );
 
 
-    // Roof detail
+    // Roof
 
     ctx.fillStyle =
-      "#0d1422";
+      "#0b111e";
 
-    if (y === 0) {
+    if (topBuilding) {
 
       ctx.fillRect(
-        x - 4,
+        x - 3,
         height - 7,
-        width + 8,
+        width + 6,
         7
       );
 
     } else {
 
       ctx.fillRect(
-        x - 4,
+        x - 3,
         y,
-        width + 8,
+        width + 6,
         7
       );
 
     }
 
 
+    // ---------------------------------
     // Windows
-
-    const windowWidth = 7;
-
-    const windowHeight = 9;
-
-    const horizontalSpacing = 14;
-
-    const verticalSpacing = 17;
-
-
-    const startX =
-      x + 8;
-
-    let startY;
-
-
-    if (y === 0) {
-
-      startY =
-        Math.max(
-          14,
-          height - 20
-        );
-
-    } else {
-
-      startY =
-        y + 16;
-
-    }
-
+    // ---------------------------------
 
     for (
-      let wy = startY;
-
-      y === 0
-        ? wy > 8
-        : wy < y + height - 10;
-
-      wy +=
-        y === 0
-          ? -verticalSpacing
-          : verticalSpacing
+      const win
+      of windows
     ) {
 
-      for (
-        let wx = startX;
+      if (
+        win.x + 6 >
+        width - 5
+      )
+        continue;
 
-        wx <
-        x + width - 9;
-
-        wx += horizontalSpacing
-      ) {
-
-        // Random but deterministic-looking window pattern
-
-        const seed =
-          Math.floor(
-            wx * 17 +
-            wy * 13 +
-            x * 7
-          );
-
-        const lit =
-          Math.abs(seed) % 5 !== 0;
+      if (
+        win.y + 9 >
+        height - 5
+      )
+        continue;
 
 
-        if (lit) {
-
-          ctx.fillStyle =
-            (
-              Math.abs(seed) % 3 === 0
-            )
-              ? "#ffe89a"
-              : "#ffc857";
+      const color =
+        win.warm
+          ? "rgba(255,211,103,"
+          : "rgba(177,214,255,";
 
 
-          ctx.globalAlpha =
-            0.65 +
-            (
-              Math.abs(seed) % 30
-            ) / 100;
+      ctx.fillStyle =
+        color +
+        win.brightness +
+        ")";
 
 
-          ctx.fillRect(
-            wx,
-            wy,
-            windowWidth,
-            windowHeight
-          );
+      let drawY;
 
+      if (topBuilding) {
 
-          ctx.globalAlpha =
-            1;
+        drawY =
+          height -
+          win.y -
+          9;
 
-        }
+      } else {
+
+        drawY =
+          y +
+          win.y;
 
       }
 
+
+      ctx.fillRect(
+        x + win.x,
+        drawY,
+        6,
+        9
+      );
+
     }
 
 
-    // Water tower on some buildings
+    // ---------------------------------
+    // Rooftop water tower
+    // ---------------------------------
 
     if (
-      height > 190 &&
-      Math.abs(
-        Math.floor(x)
-      ) % 3 === 0
+      height > 180 &&
+      Math.floor(x) % 3 === 0
     ) {
 
-      const towerX =
-        x + width * 0.5 - 10;
+      let towerY;
 
-      const towerY =
-        y === 0
-          ? height - 30
-          : y + 10;
+      if (topBuilding) {
+
+        towerY =
+          height - 29;
+
+      } else {
+
+        towerY =
+          y + 28;
+
+      }
 
 
       ctx.fillStyle =
-        "#14151b";
+        "#13151b";
 
       ctx.fillRect(
-        towerX,
-        towerY - 20,
-        20,
-        20
+        x + width / 2 - 9,
+        towerY - 19,
+        18,
+        19
       );
 
 
       ctx.fillStyle =
-        "#0d0e13";
+        "#0b0d12";
 
       ctx.fillRect(
-        towerX - 4,
-        towerY - 23,
-        28,
-        5
+        x + width / 2 - 13,
+        towerY - 22,
+        26,
+        4
       );
 
     }
@@ -1640,45 +1755,30 @@
   // PLAYER
   // ============================================================
 
-  function drawBird() {
+  function drawPlayer() {
 
     ctx.save();
-
 
     ctx.translate(
       bird.x,
       bird.y
     );
 
-
     ctx.rotate(
       bird.rotation
     );
 
 
-    // Jetpack flame
+    // Jet flame
 
     ctx.fillStyle =
-      "#ff9f1c";
-
+      "#ff9418";
 
     ctx.beginPath();
 
-    ctx.moveTo(
-      -18,
-      6
-    );
-
-    ctx.lineTo(
-      -34,
-      12
-    );
-
-    ctx.lineTo(
-      -20,
-      18
-    );
-
+    ctx.moveTo(-17, 6);
+    ctx.lineTo(-34, 12);
+    ctx.lineTo(-19, 18);
     ctx.closePath();
 
     ctx.fill();
@@ -1687,34 +1787,20 @@
     ctx.fillStyle =
       "#ffe047";
 
-
     ctx.beginPath();
 
-    ctx.moveTo(
-      -19,
-      8
-    );
-
-    ctx.lineTo(
-      -29,
-      12
-    );
-
-    ctx.lineTo(
-      -20,
-      14
-    );
-
+    ctx.moveTo(-18, 8);
+    ctx.lineTo(-29, 12);
+    ctx.lineTo(-19, 14);
     ctx.closePath();
 
     ctx.fill();
 
 
-    // Character body
+    // Body
 
     ctx.fillStyle =
       "#ffd83d";
-
 
     ctx.beginPath();
 
@@ -1744,7 +1830,6 @@
     ctx.fillStyle =
       "#e8af22";
 
-
     ctx.beginPath();
 
     ctx.ellipse(
@@ -1765,7 +1850,6 @@
     ctx.fillStyle =
       "#ffffff";
 
-
     ctx.beginPath();
 
     ctx.arc(
@@ -1781,7 +1865,6 @@
 
     ctx.fillStyle =
       "#151515";
-
 
     ctx.beginPath();
 
@@ -1801,24 +1884,11 @@
     ctx.fillStyle =
       "#f28c28";
 
-
     ctx.beginPath();
 
-    ctx.moveTo(
-      17,
-      -1
-    );
-
-    ctx.lineTo(
-      31,
-      4
-    );
-
-    ctx.lineTo(
-      17,
-      9
-    );
-
+    ctx.moveTo(17, -1);
+    ctx.lineTo(31, 4);
+    ctx.lineTo(17, 9);
     ctx.closePath();
 
     ctx.fill();
@@ -1838,12 +1908,12 @@
 
 
   // ============================================================
-  // GROUND
+  // GROUND / STREET
   // ============================================================
 
   function drawGround() {
 
-    // Dark city street
+    // Street
 
     ctx.fillStyle =
       "#090d15";
@@ -1869,16 +1939,16 @@
     );
 
 
-    // Sidewalk lines
+    // Sidewalk seams
 
     ctx.strokeStyle =
-      "#454a54";
+      "#444953";
 
     ctx.lineWidth = 2;
 
 
     for (
-      let x = 0;
+      let x = -20;
       x < W + 40;
       x += 40
     ) {
@@ -1900,11 +1970,10 @@
     }
 
 
-    // Street lane
+    // Road stripe
 
     ctx.fillStyle =
-      "#181c25";
-
+      "#1b2029";
 
     ctx.fillRect(
       0,
@@ -1914,11 +1983,10 @@
     );
 
 
-    // Yellow taxi-like lights
+    // Distant yellow lights
 
     ctx.fillStyle =
-      "#ffd43b";
-
+      "#dcb72e";
 
     for (
       let x = 20;
@@ -1928,7 +1996,7 @@
 
       ctx.fillRect(
         x,
-        groundY + 52,
+        groundY + 53,
         20,
         4
       );
@@ -1945,7 +2013,8 @@
   function drawParticles() {
 
     for (
-      const p of particles
+      const p
+      of particles
     ) {
 
       ctx.globalAlpha =
@@ -1954,10 +2023,8 @@
           p.life / p.maxLife
         );
 
-
       ctx.fillStyle =
         "#ffffff";
-
 
       ctx.beginPath();
 
@@ -1973,20 +2040,7 @@
 
     }
 
-
     ctx.globalAlpha = 1;
-
-  }
-
-
-  // ============================================================
-  // READY ANIMATION
-  // ============================================================
-
-  function drawReadyAnimation() {
-
-    if (state !== "ready")
-      return;
 
   }
 
@@ -1994,27 +2048,6 @@
   // ============================================================
   // MAIN LOOP
   // ============================================================
-
-  function draw() {
-
-    drawNightSky();
-
-    drawStars();
-
-    drawMoon();
-
-    drawDistantCity();
-
-    drawBuildings();
-
-    drawParticles();
-
-    drawBird();
-
-    drawGround();
-
-  }
-
 
   function loop(timestamp) {
 
@@ -2026,6 +2059,9 @@
       (timestamp - lastTime) /
       1000;
 
+
+    // Prevent huge physics jumps
+    // when the browser pauses the game.
 
     dt =
       Math.min(
@@ -2043,9 +2079,7 @@
     draw();
 
 
-    requestAnimationFrame(
-      loop
-    );
+    requestAnimationFrame(loop);
 
   }
 
@@ -2059,13 +2093,9 @@
   bestEl.textContent =
     "Best: " + best;
 
-
-  requestAnimationFrame(
-    loop
-  );
+  requestAnimationFrame(loop);
 
 })();
-
 </script>
 
 </body>
