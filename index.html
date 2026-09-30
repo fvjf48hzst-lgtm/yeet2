@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Sky Hopper</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <title>Sky Hopper NYC</title>
 
   <style>
     * {
@@ -11,13 +13,14 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #111827;
+      background: #050914;
       font-family: Arial, Helvetica, sans-serif;
     }
 
@@ -34,8 +37,8 @@
       max-width: 500px;
       max-height: 900px;
       overflow: hidden;
-      background: #70c5ce;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+      background: #080d20;
+      box-shadow: 0 0 45px rgba(0, 0, 0, 0.65);
     }
 
     canvas {
@@ -53,58 +56,80 @@
 
     #score {
       position: absolute;
-      top: 35px;
+      top: 30px;
       left: 0;
       width: 100%;
+
       color: white;
-      font-size: 52px;
+      font-size: 54px;
       font-weight: 900;
+
       text-shadow:
-        3px 3px 0 #333,
-        -2px 2px 0 #333,
-        2px -2px 0 #333;
+        3px 3px 0 #050505,
+        -2px 2px 0 #050505,
+        2px -2px 0 #050505;
     }
 
     #message {
       position: absolute;
       left: 50%;
-      top: 42%;
+      top: 43%;
+
       transform: translate(-50%, -50%);
-      width: 85%;
-      padding: 25px;
+
+      width: 86%;
+      padding: 28px 22px;
+
       border-radius: 18px;
-      background: rgba(0, 0, 0, 0.72);
+
+      background: rgba(5, 8, 20, 0.88);
+      border: 1px solid rgba(255,255,255,0.15);
+
       color: white;
+
+      box-shadow:
+        0 15px 45px rgba(0,0,0,0.5),
+        inset 0 0 30px rgba(80,120,255,0.05);
+
       pointer-events: auto;
     }
 
     #message h1 {
       margin: 0 0 10px;
-      font-size: 42px;
+      font-size: 40px;
     }
 
     #message p {
       margin: 8px 0;
-      font-size: 18px;
+      font-size: 17px;
       line-height: 1.5;
+      color: #d9e1ff;
     }
 
-    #startButton {
-      margin-top: 15px;
-      padding: 14px 32px;
+    #startButton,
+    #restartButton {
+      margin-top: 17px;
+
+      padding: 14px 34px;
+
       border: none;
       border-radius: 12px;
-      background: #ffd43b;
-      color: #222;
+
+      background: #ffd447;
+      color: #161616;
+
       font-size: 20px;
       font-weight: bold;
+
       cursor: pointer;
-      box-shadow: 0 5px 0 #c99e00;
+
+      box-shadow: 0 5px 0 #a87e00;
     }
 
-    #startButton:active {
+    #startButton:active,
+    #restartButton:active {
       transform: translateY(4px);
-      box-shadow: 0 1px 0 #c99e00;
+      box-shadow: 0 1px 0 #a87e00;
     }
 
     #gameOver {
@@ -113,7 +138,7 @@
 
     #best {
       font-size: 16px;
-      opacity: 0.85;
+      opacity: 0.8;
     }
 
     #hint {
@@ -121,9 +146,12 @@
       bottom: 18px;
       left: 0;
       width: 100%;
-      color: rgba(255,255,255,0.9);
-      font-size: 14px;
-      text-shadow: 1px 1px 2px #333;
+
+      color: rgba(255,255,255,0.8);
+
+      font-size: 13px;
+
+      text-shadow: 1px 1px 3px #000;
     }
   </style>
 </head>
@@ -131,591 +159,1913 @@
 <body>
 
 <div id="game">
+
   <canvas id="canvas"></canvas>
 
   <div id="ui">
+
     <div id="score">0</div>
 
     <div id="message">
+
       <div id="startScreen">
-        <h1>🐤 Sky Hopper</h1>
-        <p>Tap, click, or press <b>SPACE</b> to flap!</p>
-        <p>Avoid the pipes and get the highest score.</p>
-        <button id="startButton">PLAY</button>
+        <h1>🌃 Sky Hopper NYC</h1>
+
+        <p>
+          Fly through the New York skyline!
+        </p>
+
+        <p>
+          Tap, click, or press <b>SPACE</b> to fly.
+        </p>
+
+        <button id="startButton">
+          START FLYING
+        </button>
       </div>
 
       <div id="gameOver">
-        <h1>Game Over!</h1>
-        <p>Score: <b id="finalScore">0</b></p>
-        <p id="best">Best: 0</p>
-        <button id="restartButton">PLAY AGAIN</button>
+
+        <h1>💥 CRASH!</h1>
+
+        <p>
+          You flew <b id="finalScore">0</b> buildings.
+        </p>
+
+        <p id="best">
+          Best: 0
+        </p>
+
+        <button id="restartButton">
+          FLY AGAIN
+        </button>
+
       </div>
+
     </div>
 
-    <div id="hint">Tap / Click / Space = Flap</div>
+    <div id="hint">
+      TAP / CLICK / SPACE = FLY
+    </div>
+
   </div>
+
 </div>
 
 <script>
+
 (() => {
+
   "use strict";
+
+  // ============================================================
+  // CANVAS
+  // ============================================================
 
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
   const game = document.getElementById("game");
+
   const scoreEl = document.getElementById("score");
+
   const message = document.getElementById("message");
-  const startScreen = document.getElementById("startScreen");
-  const gameOverScreen = document.getElementById("gameOver");
-  const startButton = document.getElementById("startButton");
-  const restartButton = document.getElementById("restartButton");
-  const finalScore = document.getElementById("finalScore");
-  const bestEl = document.getElementById("best");
+
+  const startScreen =
+    document.getElementById("startScreen");
+
+  const gameOverScreen =
+    document.getElementById("gameOver");
+
+  const startButton =
+    document.getElementById("startButton");
+
+  const restartButton =
+    document.getElementById("restartButton");
+
+  const finalScore =
+    document.getElementById("finalScore");
+
+  const bestEl =
+    document.getElementById("best");
+
+
+  // ============================================================
+  // GAME SETTINGS
+  // ============================================================
 
   let W = 400;
   let H = 700;
+
   let groundY = 620;
 
   let state = "ready";
-  let score = 0;
-  let best = Number(localStorage.getItem("skyHopperBest")) || 0;
 
-  let pipes = [];
+  let score = 0;
+
+  let best =
+    Number(localStorage.getItem("skyHopperNYCBest")) || 0;
+
+  let buildings = [];
+
   let particles = [];
 
+  let stars = [];
+
   let lastTime = 0;
-  let spawnTimer = 0;
+
+  let buildingTimer = 0;
+
+  let cityScroll = 0;
+
+
+  // ============================================================
+  // BIRD / PLAYER
+  // ============================================================
 
   const bird = {
+
     x: 100,
+
     y: 300,
+
     radius: 17,
+
     velocity: 0,
+
     rotation: 0
+
   };
+
+
+  // ============================================================
+  // PHYSICS
+  // ============================================================
 
   const physics = {
+
     gravity: 1550,
+
     flap: -470,
-    pipeSpeed: 190,
-    pipeWidth: 68,
-    gap: 175,
+
+    buildingSpeed: 190,
+
+    buildingWidth: 72,
+
+    gap: 185,
+
     spawnEvery: 1.45
+
   };
 
-  function resize() {
-    const rect = game.getBoundingClientRect();
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // ============================================================
+  // RESIZE
+  // ============================================================
+
+  function resize() {
+
+    const rect =
+      game.getBoundingClientRect();
+
+    const dpr =
+      Math.min(window.devicePixelRatio || 1, 2);
 
     W = rect.width;
     H = rect.height;
 
-    canvas.width = Math.floor(W * dpr);
-    canvas.height = Math.floor(H * dpr);
+    canvas.width =
+      Math.floor(W * dpr);
 
-    canvas.style.width = W + "px";
-    canvas.style.height = H + "px";
+    canvas.height =
+      Math.floor(H * dpr);
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    canvas.style.width =
+      W + "px";
 
-    groundY = H - Math.max(70, H * 0.11);
+    canvas.style.height =
+      H + "px";
+
+    ctx.setTransform(
+      dpr,
+      0,
+      0,
+      dpr,
+      0,
+      0
+    );
+
+    groundY =
+      H - Math.max(
+        65,
+        H * 0.10
+      );
 
     if (state === "ready") {
+
       bird.x = W * 0.25;
+
       bird.y = H * 0.45;
+
     }
+
+    createStars();
+
   }
 
-  window.addEventListener("resize", resize);
+
+  window.addEventListener(
+    "resize",
+    resize
+  );
+
+
+  // ============================================================
+  // STARS
+  // ============================================================
+
+  function createStars() {
+
+    stars = [];
+
+    const count =
+      Math.floor(W * H / 8000);
+
+    for (let i = 0; i < count; i++) {
+
+      stars.push({
+
+        x: Math.random() * W,
+
+        y:
+          Math.random() *
+          groundY *
+          0.75,
+
+        size:
+          Math.random() * 1.7 + 0.5,
+
+        brightness:
+          Math.random() * 0.7 + 0.3,
+
+        twinkle:
+          Math.random() * Math.PI * 2
+
+      });
+
+    }
+
+  }
+
+
+  // ============================================================
+  // RESET
+  // ============================================================
 
   function resetBird() {
-    bird.x = W * 0.25;
-    bird.y = H * 0.45;
+
+    bird.x =
+      W * 0.25;
+
+    bird.y =
+      H * 0.45;
+
     bird.velocity = 0;
+
     bird.rotation = 0;
+
   }
 
+
+  // ============================================================
+  // START
+  // ============================================================
+
   function startGame() {
+
     state = "playing";
+
     score = 0;
-    pipes = [];
+
+    buildings = [];
+
     particles = [];
-    spawnTimer = 0;
+
+    buildingTimer = 0;
+
+    cityScroll = 0;
 
     resetBird();
 
     scoreEl.textContent = "0";
+
     message.style.display = "none";
 
     flap();
+
   }
 
+
+  // ============================================================
+  // GAME OVER
+  // ============================================================
+
   function endGame() {
-    if (state !== "playing") return;
+
+    if (state !== "playing")
+      return;
 
     state = "gameover";
 
-    finalScore.textContent = score;
+    finalScore.textContent =
+      score;
 
     if (score > best) {
+
       best = score;
-      localStorage.setItem("skyHopperBest", best);
+
+      localStorage.setItem(
+        "skyHopperNYCBest",
+        best
+      );
+
     }
 
-    bestEl.textContent = "Best: " + best;
+    bestEl.textContent =
+      "Best: " + best;
 
-    message.style.display = "block";
-    startScreen.style.display = "none";
-    gameOverScreen.style.display = "block";
+    message.style.display =
+      "block";
 
-    createParticles(bird.x, bird.y, 20);
+    startScreen.style.display =
+      "none";
+
+    gameOverScreen.style.display =
+      "block";
+
+    createParticles(
+      bird.x,
+      bird.y,
+      25
+    );
+
   }
 
-  function flap() {
-    if (state !== "playing") return;
 
-    bird.velocity = physics.flap;
+  // ============================================================
+  // FLAP
+  // ============================================================
+
+  function flap() {
+
+    if (state !== "playing")
+      return;
+
+    bird.velocity =
+      physics.flap;
 
     createParticles(
       bird.x - bird.radius,
       bird.y + 5,
       4
     );
+
   }
 
+
+  // ============================================================
+  // INPUT
+  // ============================================================
+
   function handleInput(e) {
-    if (e) e.preventDefault();
+
+    if (e)
+      e.preventDefault();
 
     if (state === "ready") {
+
       startGame();
+
       return;
+
     }
 
     if (state === "gameover") {
+
       startGame();
+
       return;
+
     }
 
     flap();
+
   }
 
-  window.addEventListener("keydown", (e) => {
-    if (
-      e.code === "Space" ||
-      e.code === "ArrowUp" ||
-      e.code === "KeyW"
-    ) {
-      handleInput(e);
+
+  window.addEventListener(
+    "keydown",
+    e => {
+
+      if (
+        e.code === "Space" ||
+        e.code === "ArrowUp" ||
+        e.code === "KeyW"
+      ) {
+
+        handleInput(e);
+
+      }
+
     }
-  });
+  );
 
-  canvas.addEventListener("pointerdown", handleInput);
 
-  startButton.addEventListener("click", (e) => {
-    e.stopPropagation();
-    startGame();
-  });
+  canvas.addEventListener(
+    "pointerdown",
+    handleInput
+  );
 
-  restartButton.addEventListener("click", (e) => {
-    e.stopPropagation();
-    startGame();
-  });
 
-  function spawnPipe() {
-    const minTop = 80;
-    const maxTop = groundY - physics.gap - 80;
+  startButton.addEventListener(
+    "click",
+    e => {
+
+      e.stopPropagation();
+
+      startGame();
+
+    }
+  );
+
+
+  restartButton.addEventListener(
+    "click",
+    e => {
+
+      e.stopPropagation();
+
+      startGame();
+
+    }
+  );
+
+
+  // ============================================================
+  // CREATE BUILDING GAP
+  // ============================================================
+
+  function spawnBuildingPair() {
+
+    const minTop = 85;
+
+    const maxTop =
+      groundY -
+      physics.gap -
+      95;
 
     const topHeight =
-      minTop + Math.random() * Math.max(40, maxTop - minTop);
+      minTop +
+      Math.random() *
+      Math.max(
+        30,
+        maxTop - minTop
+      );
 
-    pipes.push({
-      x: W + physics.pipeWidth,
-      top: topHeight,
-      gap: physics.gap,
+    const styles = [
+      "office",
+      "brick",
+      "glass",
+      "old",
+      "modern"
+    ];
+
+    const style =
+      styles[
+        Math.floor(
+          Math.random() *
+          styles.length
+        )
+      ];
+
+    buildings.push({
+
+      x:
+        W + physics.buildingWidth,
+
+      top:
+        topHeight,
+
+      gap:
+        physics.gap,
+
+      style:
+
+        style,
+
       counted: false
+
     });
+
   }
+
+
+  // ============================================================
+  // UPDATE
+  // ============================================================
 
   function update(dt) {
+
     if (state !== "playing") {
+
       updateParticles(dt);
+
       return;
+
     }
 
-    // Bird physics
-    bird.velocity += physics.gravity * dt;
-    bird.y += bird.velocity * dt;
 
-    bird.rotation = Math.min(
-      Math.PI / 2,
-      Math.max(-0.5, bird.velocity / 600)
-    );
+    // -----------------------------
+    // PLAYER PHYSICS
+    // -----------------------------
 
-    // Pipe spawning
-    spawnTimer += dt;
+    bird.velocity +=
+      physics.gravity * dt;
 
-    if (spawnTimer >= physics.spawnEvery) {
-      spawnTimer = 0;
-      spawnPipe();
+    bird.y +=
+      bird.velocity * dt;
+
+    bird.rotation =
+      Math.min(
+        Math.PI / 2,
+        Math.max(
+          -0.5,
+          bird.velocity / 600
+        )
+      );
+
+
+    // -----------------------------
+    // CITY MOVEMENT
+    // -----------------------------
+
+    cityScroll +=
+      physics.buildingSpeed * dt;
+
+
+    // -----------------------------
+    // SPAWN BUILDINGS
+    // -----------------------------
+
+    buildingTimer += dt;
+
+    if (
+      buildingTimer >=
+      physics.spawnEvery
+    ) {
+
+      buildingTimer = 0;
+
+      spawnBuildingPair();
+
     }
 
-    // Move pipes
-    for (const pipe of pipes) {
-      pipe.x -= physics.pipeSpeed * dt;
 
-      if (!pipe.counted && pipe.x + physics.pipeWidth < bird.x) {
-        pipe.counted = true;
+    // -----------------------------
+    // MOVE BUILDINGS
+    // -----------------------------
+
+    for (const building of buildings) {
+
+      building.x -=
+        physics.buildingSpeed * dt;
+
+
+      if (
+        !building.counted &&
+        building.x +
+          physics.buildingWidth <
+          bird.x
+      ) {
+
+        building.counted = true;
+
         score++;
-        scoreEl.textContent = score;
 
-        createParticles(bird.x, bird.y, 7);
+        scoreEl.textContent =
+          score;
+
+        createParticles(
+          bird.x,
+          bird.y,
+          7
+        );
+
       }
+
     }
 
-    pipes = pipes.filter(
-      pipe => pipe.x + physics.pipeWidth > -20
-    );
+
+    buildings =
+      buildings.filter(
+        building =>
+          building.x +
+            physics.buildingWidth >
+          -40
+      );
+
+
+    // -----------------------------
+    // COLLISIONS
+    // -----------------------------
 
     checkCollisions();
+
+
     updateParticles(dt);
+
   }
 
+
+  // ============================================================
+  // COLLISION DETECTION
+  // ============================================================
+
   function checkCollisions() {
-    // Ground / ceiling
+
+    // Ceiling
+
     if (
-      bird.y + bird.radius >= groundY ||
-      bird.y - bird.radius <= 0
+      bird.y -
+        bird.radius <=
+      0
     ) {
+
       endGame();
+
       return;
+
     }
 
-    for (const pipe of pipes) {
-      const pipeLeft = pipe.x;
-      const pipeRight = pipe.x + physics.pipeWidth;
 
-      const topBottom = pipe.top;
-      const bottomTop = pipe.top + pipe.gap;
+    // Ground
 
-      // Slightly forgiving collision box
-      const birdLeft = bird.x - bird.radius * 0.75;
-      const birdRight = bird.x + bird.radius * 0.75;
-      const birdTop = bird.y - bird.radius * 0.75;
-      const birdBottom = bird.y + bird.radius * 0.75;
+    if (
+      bird.y +
+        bird.radius >=
+      groundY
+    ) {
+
+      endGame();
+
+      return;
+
+    }
+
+
+    // Buildings
+
+    for (const building of buildings) {
+
+      const left =
+        building.x;
+
+      const right =
+        building.x +
+        physics.buildingWidth;
+
+      const topBottom =
+        building.top;
+
+      const bottomTop =
+        building.top +
+        building.gap;
+
+
+      const birdLeft =
+        bird.x -
+        bird.radius *
+        0.75;
+
+      const birdRight =
+        bird.x +
+        bird.radius *
+        0.75;
+
+      const birdTop =
+        bird.y -
+        bird.radius *
+        0.75;
+
+      const birdBottom =
+        bird.y +
+        bird.radius *
+        0.75;
+
 
       const horizontal =
-        birdRight > pipeLeft &&
-        birdLeft < pipeRight;
+        birdRight > left &&
+        birdLeft < right;
+
 
       const vertical =
         birdTop < topBottom ||
         birdBottom > bottomTop;
 
-      if (horizontal && vertical) {
+
+      if (
+        horizontal &&
+        vertical
+      ) {
+
         endGame();
+
         return;
+
       }
+
     }
+
   }
 
-  function createParticles(x, y, amount) {
-    for (let i = 0; i < amount; i++) {
+
+  // ============================================================
+  // PARTICLES
+  // ============================================================
+
+  function createParticles(
+    x,
+    y,
+    amount
+  ) {
+
+    for (
+      let i = 0;
+      i < amount;
+      i++
+    ) {
+
       particles.push({
+
         x,
+
         y,
-        vx: -40 - Math.random() * 80,
-        vy: (Math.random() - 0.5) * 100,
-        life: 0.4 + Math.random() * 0.35,
-        maxLife: 0.75,
-        size: 2 + Math.random() * 4
+
+        vx:
+          -40 -
+          Math.random() * 80,
+
+        vy:
+          (Math.random() - 0.5) *
+          100,
+
+        life:
+          0.4 +
+          Math.random() *
+          0.35,
+
+        maxLife:
+          0.75,
+
+        size:
+          2 +
+          Math.random() *
+          4
+
       });
+
     }
+
   }
+
 
   function updateParticles(dt) {
+
     for (const p of particles) {
+
       p.life -= dt;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vy += 200 * dt;
+
+      p.x +=
+        p.vx * dt;
+
+      p.y +=
+        p.vy * dt;
+
+      p.vy +=
+        200 * dt;
+
     }
 
-    particles = particles.filter(p => p.life > 0);
+
+    particles =
+      particles.filter(
+        p => p.life > 0
+      );
+
   }
 
-  // -----------------------------
-  // DRAWING
-  // -----------------------------
+
+  // ============================================================
+  // DRAW
+  // ============================================================
 
   function draw() {
-    drawSky();
-    drawClouds();
-    drawPipes();
+
+    drawNightSky();
+
+    drawStars();
+
+    drawMoon();
+
+    drawDistantCity();
+
+    drawBuildings();
+
     drawParticles();
+
     drawBird();
+
     drawGround();
 
-    if (state === "ready") {
-      drawReadyBird();
-    }
   }
 
-  function drawSky() {
-    const gradient = ctx.createLinearGradient(0, 0, 0, H);
 
-    gradient.addColorStop(0, "#55c7e0");
-    gradient.addColorStop(1, "#b9eff3");
+  // ============================================================
+  // NIGHT SKY
+  // ============================================================
 
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, W, H);
-  }
+  function drawNightSky() {
 
-  function drawClouds() {
-    const time = performance.now() / 30000;
-
-    drawCloud(
-      ((W * 0.15 - time * 30) % (W + 150) + W + 150) % (W + 150) - 100,
-      H * 0.17,
-      1
-    );
-
-    drawCloud(
-      ((W * 0.75 - time * 20) % (W + 180) + W + 180) % (W + 180) - 120,
-      H * 0.30,
-      0.8
-    );
-
-    drawCloud(
-      ((W * 1.1 - time * 15) % (W + 200) + W + 200) % (W + 200) - 150,
-      H * 0.10,
-      0.65
-    );
-  }
-
-  function drawCloud(x, y, scale) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(scale, scale);
-
-    ctx.fillStyle = "rgba(255,255,255,0.72)";
-
-    ctx.beginPath();
-    ctx.arc(0, 10, 22, 0, Math.PI * 2);
-    ctx.arc(28, 2, 30, 0, Math.PI * 2);
-    ctx.arc(60, 12, 20, 0, Math.PI * 2);
-    ctx.rect(0, 10, 60, 22);
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  function drawPipes() {
-    for (const pipe of pipes) {
-      drawPipe(
-        pipe.x,
+    const gradient =
+      ctx.createLinearGradient(
         0,
-        physics.pipeWidth,
-        pipe.top,
-        true
+        0,
+        0,
+        H
       );
 
-      drawPipe(
-        pipe.x,
-        pipe.top + pipe.gap,
-        physics.pipeWidth,
-        groundY - (pipe.top + pipe.gap),
-        false
-      );
-    }
+
+    gradient.addColorStop(
+      0,
+      "#030719"
+    );
+
+    gradient.addColorStop(
+      0.45,
+      "#0b1735"
+    );
+
+    gradient.addColorStop(
+      1,
+      "#172c4e"
+    );
+
+
+    ctx.fillStyle =
+      gradient;
+
+    ctx.fillRect(
+      0,
+      0,
+      W,
+      H
+    );
+
   }
 
-  function drawPipe(x, y, width, height, topPipe) {
-    if (height <= 0) return;
 
-    const capHeight = 24;
-    const capExtra = 7;
+  // ============================================================
+  // STARS
+  // ============================================================
 
-    // Main body
-    ctx.fillStyle = "#39a852";
-    ctx.fillRect(x, y, width, height);
+  function drawStars() {
 
-    // Highlight
-    ctx.fillStyle = "#5ed56b";
-    ctx.fillRect(x + 7, y, 9, height);
+    const time =
+      performance.now() /
+      500;
 
-    // Dark edge
-    ctx.fillStyle = "#20783a";
-    ctx.fillRect(x + width - 8, y, 8, height);
 
-    // Cap
-    ctx.fillStyle = "#39a852";
+    for (const star of stars) {
 
-    if (topPipe) {
-      ctx.fillRect(
-        x - capExtra,
-        y + height - capHeight,
-        width + capExtra * 2,
-        capHeight
-      );
+      const twinkle =
+        0.65 +
+        Math.sin(
+          time +
+          star.twinkle
+        ) *
+        0.35;
 
-      ctx.fillStyle = "#5ed56b";
-      ctx.fillRect(
-        x - capExtra + 6,
-        y + height - capHeight + 4,
-        9,
-        capHeight - 4
-      );
-    } else {
-      ctx.fillRect(
-        x - capExtra,
-        y,
-        width + capExtra * 2,
-        capHeight
-      );
 
-      ctx.fillStyle = "#5ed56b";
-      ctx.fillRect(
-        x - capExtra + 6,
-        y + 4,
-        9,
-        capHeight - 4
-      );
-    }
-  }
+      ctx.globalAlpha =
+        star.brightness *
+        twinkle;
 
-  function drawBird() {
-    ctx.save();
 
-    ctx.translate(bird.x, bird.y);
+      ctx.fillStyle =
+        "#ffffff";
 
-    ctx.rotate(bird.rotation);
 
-    // Body
-    ctx.fillStyle = "#ffd83d";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 20, 16, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Body outline
-    ctx.strokeStyle = "#9b7200";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Wing
-    ctx.fillStyle = "#f0b928";
-    ctx.beginPath();
-    ctx.ellipse(-6, 6, 12, 7, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Eye
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.arc(9, -7, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#222";
-    ctx.beginPath();
-    ctx.arc(11, -7, 2.7, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Beak
-    ctx.fillStyle = "#f28c28";
-    ctx.beginPath();
-    ctx.moveTo(17, -1);
-    ctx.lineTo(31, 4);
-    ctx.lineTo(17, 9);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = "#9b4e00";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  function drawReadyBird() {
-    if (state !== "ready") return;
-
-    // Gentle floating animation
-    const bob = Math.sin(performance.now() / 250) * 8;
-
-    ctx.save();
-    ctx.translate(0, bob);
-
-    ctx.restore();
-  }
-
-  function drawGround() {
-    // Dirt
-    ctx.fillStyle = "#d8a849";
-    ctx.fillRect(0, groundY, W, H - groundY);
-
-    // Grass
-    ctx.fillStyle = "#72bd45";
-    ctx.fillRect(0, groundY, W, 12);
-
-    // Grass details
-    ctx.strokeStyle = "#4d9435";
-    ctx.lineWidth = 3;
-
-    for (let x = 0; x < W + 20; x += 25) {
       ctx.beginPath();
-      ctx.moveTo(x, groundY + 10);
-      ctx.lineTo(x + 8, groundY + 4);
-      ctx.stroke();
-    }
 
-    // Dirt stripes
-    ctx.strokeStyle = "rgba(130,85,35,0.3)";
-    ctx.lineWidth = 4;
+      ctx.arc(
+        star.x,
+        star.y,
+        star.size,
+        0,
+        Math.PI * 2
+      );
 
-    for (let x = -20; x < W; x += 50) {
-      ctx.beginPath();
-      ctx.moveTo(x, groundY + 30);
-      ctx.lineTo(x + 25, groundY + 30);
-      ctx.stroke();
-    }
-  }
-
-  function drawParticles() {
-    for (const p of particles) {
-      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-
-      ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
+
     }
+
 
     ctx.globalAlpha = 1;
+
   }
+
+
+  // ============================================================
+  // MOON
+  // ============================================================
+
+  function drawMoon() {
+
+    const moonX =
+      W * 0.78;
+
+    const moonY =
+      H * 0.16;
+
+    const moonRadius =
+      Math.min(
+        42,
+        W * 0.095
+      );
+
+
+    // Glow
+
+    const glow =
+      ctx.createRadialGradient(
+        moonX,
+        moonY,
+        5,
+        moonX,
+        moonY,
+        moonRadius * 2.7
+      );
+
+
+    glow.addColorStop(
+      0,
+      "rgba(255,245,190,0.25)"
+    );
+
+    glow.addColorStop(
+      1,
+      "rgba(255,245,190,0)"
+    );
+
+
+    ctx.fillStyle =
+      glow;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      moonX,
+      moonY,
+      moonRadius * 2.7,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // Moon
+
+    ctx.fillStyle =
+      "#fff3c4";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      moonX,
+      moonY,
+      moonRadius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // Crescent shadow
+
+    ctx.fillStyle =
+      "#0a1530";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      moonX + moonRadius * 0.35,
+      moonY - moonRadius * 0.18,
+      moonRadius * 0.88,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+  }
+
+
+  // ============================================================
+  // DISTANT NYC SKYLINE
+  // ============================================================
+
+  function drawDistantCity() {
+
+    const base =
+      groundY - 35;
+
+
+    ctx.fillStyle =
+      "#08101e";
+
+
+    // Buildings
+
+    const buildings = [
+
+      [0, 150],
+      [45, 210],
+      [85, 125],
+      [120, 245],
+      [165, 175],
+      [205, 280],
+      [250, 150],
+      [285, 225],
+      [330, 180],
+      [370, 255],
+      [415, 145]
+
+    ];
+
+
+    for (
+      const [x, height]
+      of buildings
+    ) {
+
+      ctx.fillRect(
+        x,
+        base - height,
+        48,
+        height
+      );
+
+    }
+
+
+    // Empire State Building-style silhouette
+
+    const center =
+      W * 0.48;
+
+    const towerBottom =
+      base;
+
+    const towerTop =
+      base - 330;
+
+
+    ctx.fillStyle =
+      "#060c18";
+
+
+    ctx.fillRect(
+      center - 32,
+      towerBottom - 190,
+      64,
+      190
+    );
+
+
+    ctx.fillRect(
+      center - 22,
+      towerBottom - 250,
+      44,
+      60
+    );
+
+
+    ctx.fillRect(
+      center - 12,
+      towerBottom - 295,
+      24,
+      45
+    );
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      center - 7,
+      towerTop + 20
+    );
+
+    ctx.lineTo(
+      center,
+      towerTop
+    );
+
+    ctx.lineTo(
+      center + 7,
+      towerTop + 20
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    // Distant windows
+
+    ctx.fillStyle =
+      "rgba(255,205,90,0.5)";
+
+
+    for (
+      let x = 0;
+      x < W;
+      x += 25
+    ) {
+
+      for (
+        let y = base - 25;
+        y > base - 290;
+        y -= 22
+      ) {
+
+        if (
+          Math.random() >
+          0.48
+        ) {
+
+          ctx.fillRect(
+            x,
+            y,
+            4,
+            7
+          );
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  // ============================================================
+  // MAIN BUILDINGS
+  // ============================================================
+
+  function drawBuildings() {
+
+    for (
+      const building
+      of buildings
+    ) {
+
+      // Top building
+
+      drawCityBuilding(
+        building.x,
+        0,
+        physics.buildingWidth,
+        building.top,
+        building.style
+      );
+
+
+      // Bottom building
+
+      drawCityBuilding(
+        building.x,
+        building.top +
+          building.gap,
+        physics.buildingWidth,
+        groundY -
+          (
+            building.top +
+            building.gap
+          ),
+        building.style
+      );
+
+    }
+
+  }
+
+
+  // ============================================================
+  // BUILDING DRAWING
+  // ============================================================
+
+  function drawCityBuilding(
+    x,
+    y,
+    width,
+    height,
+    style
+  ) {
+
+    if (height <= 0)
+      return;
+
+
+    let bodyColor =
+      "#20283a";
+
+    let edgeColor =
+      "#111827";
+
+
+    if (style === "brick") {
+
+      bodyColor =
+        "#4b3030";
+
+      edgeColor =
+        "#2b1d20";
+
+    }
+
+    if (style === "glass") {
+
+      bodyColor =
+        "#18384c";
+
+      edgeColor =
+        "#102634";
+
+    }
+
+    if (style === "old") {
+
+      bodyColor =
+        "#38333c";
+
+      edgeColor =
+        "#24212a";
+
+    }
+
+    if (style === "modern") {
+
+      bodyColor =
+        "#263548";
+
+      edgeColor =
+        "#151f30";
+
+    }
+
+
+    // Main building
+
+    ctx.fillStyle =
+      bodyColor;
+
+    ctx.fillRect(
+      x,
+      y,
+      width,
+      height
+    );
+
+
+    // Side edge
+
+    ctx.fillStyle =
+      edgeColor;
+
+    ctx.fillRect(
+      x + width - 7,
+      y,
+      7,
+      height
+    );
+
+
+    // Roof detail
+
+    ctx.fillStyle =
+      "#0d1422";
+
+    if (y === 0) {
+
+      ctx.fillRect(
+        x - 4,
+        height - 7,
+        width + 8,
+        7
+      );
+
+    } else {
+
+      ctx.fillRect(
+        x - 4,
+        y,
+        width + 8,
+        7
+      );
+
+    }
+
+
+    // Windows
+
+    const windowWidth = 7;
+
+    const windowHeight = 9;
+
+    const horizontalSpacing = 14;
+
+    const verticalSpacing = 17;
+
+
+    const startX =
+      x + 8;
+
+    let startY;
+
+
+    if (y === 0) {
+
+      startY =
+        Math.max(
+          14,
+          height - 20
+        );
+
+    } else {
+
+      startY =
+        y + 16;
+
+    }
+
+
+    for (
+      let wy = startY;
+
+      y === 0
+        ? wy > 8
+        : wy < y + height - 10;
+
+      wy +=
+        y === 0
+          ? -verticalSpacing
+          : verticalSpacing
+    ) {
+
+      for (
+        let wx = startX;
+
+        wx <
+        x + width - 9;
+
+        wx += horizontalSpacing
+      ) {
+
+        // Random but deterministic-looking window pattern
+
+        const seed =
+          Math.floor(
+            wx * 17 +
+            wy * 13 +
+            x * 7
+          );
+
+        const lit =
+          Math.abs(seed) % 5 !== 0;
+
+
+        if (lit) {
+
+          ctx.fillStyle =
+            (
+              Math.abs(seed) % 3 === 0
+            )
+              ? "#ffe89a"
+              : "#ffc857";
+
+
+          ctx.globalAlpha =
+            0.65 +
+            (
+              Math.abs(seed) % 30
+            ) / 100;
+
+
+          ctx.fillRect(
+            wx,
+            wy,
+            windowWidth,
+            windowHeight
+          );
+
+
+          ctx.globalAlpha =
+            1;
+
+        }
+
+      }
+
+    }
+
+
+    // Water tower on some buildings
+
+    if (
+      height > 190 &&
+      Math.abs(
+        Math.floor(x)
+      ) % 3 === 0
+    ) {
+
+      const towerX =
+        x + width * 0.5 - 10;
+
+      const towerY =
+        y === 0
+          ? height - 30
+          : y + 10;
+
+
+      ctx.fillStyle =
+        "#14151b";
+
+      ctx.fillRect(
+        towerX,
+        towerY - 20,
+        20,
+        20
+      );
+
+
+      ctx.fillStyle =
+        "#0d0e13";
+
+      ctx.fillRect(
+        towerX - 4,
+        towerY - 23,
+        28,
+        5
+      );
+
+    }
+
+  }
+
+
+  // ============================================================
+  // PLAYER
+  // ============================================================
+
+  function drawBird() {
+
+    ctx.save();
+
+
+    ctx.translate(
+      bird.x,
+      bird.y
+    );
+
+
+    ctx.rotate(
+      bird.rotation
+    );
+
+
+    // Jetpack flame
+
+    ctx.fillStyle =
+      "#ff9f1c";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      -18,
+      6
+    );
+
+    ctx.lineTo(
+      -34,
+      12
+    );
+
+    ctx.lineTo(
+      -20,
+      18
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+      "#ffe047";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      -19,
+      8
+    );
+
+    ctx.lineTo(
+      -29,
+      12
+    );
+
+    ctx.lineTo(
+      -20,
+      14
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    // Character body
+
+    ctx.fillStyle =
+      "#ffd83d";
+
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+      0,
+      0,
+      20,
+      16,
+      0,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    ctx.strokeStyle =
+      "#9b7200";
+
+    ctx.lineWidth = 2;
+
+    ctx.stroke();
+
+
+    // Wing
+
+    ctx.fillStyle =
+      "#e8af22";
+
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+      -6,
+      6,
+      12,
+      7,
+      -0.3,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // Eye
+
+    ctx.fillStyle =
+      "#ffffff";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+      9,
+      -7,
+      6,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+      "#151515";
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+      11,
+      -7,
+      2.7,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // Beak
+
+    ctx.fillStyle =
+      "#f28c28";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      17,
+      -1
+    );
+
+    ctx.lineTo(
+      31,
+      4
+    );
+
+    ctx.lineTo(
+      17,
+      9
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    ctx.strokeStyle =
+      "#9b4e00";
+
+    ctx.lineWidth = 1.5;
+
+    ctx.stroke();
+
+
+    ctx.restore();
+
+  }
+
+
+  // ============================================================
+  // GROUND
+  // ============================================================
+
+  function drawGround() {
+
+    // Dark city street
+
+    ctx.fillStyle =
+      "#090d15";
+
+    ctx.fillRect(
+      0,
+      groundY,
+      W,
+      H - groundY
+    );
+
+
+    // Sidewalk
+
+    ctx.fillStyle =
+      "#292d36";
+
+    ctx.fillRect(
+      0,
+      groundY,
+      W,
+      12
+    );
+
+
+    // Sidewalk lines
+
+    ctx.strokeStyle =
+      "#454a54";
+
+    ctx.lineWidth = 2;
+
+
+    for (
+      let x = 0;
+      x < W + 40;
+      x += 40
+    ) {
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        x,
+        groundY
+      );
+
+      ctx.lineTo(
+        x - 15,
+        H
+      );
+
+      ctx.stroke();
+
+    }
+
+
+    // Street lane
+
+    ctx.fillStyle =
+      "#181c25";
+
+
+    ctx.fillRect(
+      0,
+      groundY + 35,
+      W,
+      5
+    );
+
+
+    // Yellow taxi-like lights
+
+    ctx.fillStyle =
+      "#ffd43b";
+
+
+    for (
+      let x = 20;
+      x < W;
+      x += 100
+    ) {
+
+      ctx.fillRect(
+        x,
+        groundY + 52,
+        20,
+        4
+      );
+
+    }
+
+  }
+
+
+  // ============================================================
+  // PARTICLES
+  // ============================================================
+
+  function drawParticles() {
+
+    for (
+      const p of particles
+    ) {
+
+      ctx.globalAlpha =
+        Math.max(
+          0,
+          p.life / p.maxLife
+        );
+
+
+      ctx.fillStyle =
+        "#ffffff";
+
+
+      ctx.beginPath();
+
+      ctx.arc(
+        p.x,
+        p.y,
+        p.size,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fill();
+
+    }
+
+
+    ctx.globalAlpha = 1;
+
+  }
+
+
+  // ============================================================
+  // READY ANIMATION
+  // ============================================================
+
+  function drawReadyAnimation() {
+
+    if (state !== "ready")
+      return;
+
+  }
+
+
+  // ============================================================
+  // MAIN LOOP
+  // ============================================================
+
+  function draw() {
+
+    drawNightSky();
+
+    drawStars();
+
+    drawMoon();
+
+    drawDistantCity();
+
+    drawBuildings();
+
+    drawParticles();
+
+    drawBird();
+
+    drawGround();
+
+  }
+
 
   function loop(timestamp) {
-    if (!lastTime) lastTime = timestamp;
 
-    let dt = (timestamp - lastTime) / 1000;
+    if (!lastTime)
+      lastTime = timestamp;
 
-    // Prevent giant physics jumps if the browser is paused.
-    dt = Math.min(dt, 0.035);
 
-    lastTime = timestamp;
+    let dt =
+      (timestamp - lastTime) /
+      1000;
+
+
+    dt =
+      Math.min(
+        dt,
+        0.035
+      );
+
+
+    lastTime =
+      timestamp;
+
 
     update(dt);
+
     draw();
 
-    requestAnimationFrame(loop);
+
+    requestAnimationFrame(
+      loop
+    );
+
   }
+
+
+  // ============================================================
+  // INITIALIZE
+  // ============================================================
 
   resize();
 
-  bestEl.textContent = "Best: " + best;
+  bestEl.textContent =
+    "Best: " + best;
 
-  requestAnimationFrame(loop);
+
+  requestAnimationFrame(
+    loop
+  );
 
 })();
+
 </script>
 
 </body>
