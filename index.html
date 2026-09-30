@@ -210,11 +210,9 @@
 
   let W = 400;
   let H = 700;
-
   let groundY = 620;
 
   let state = "ready";
-
   let score = 0;
 
   let best =
@@ -228,20 +226,30 @@
 
   let lastTime = 0;
   let buildingTimer = 0;
-
   let skylineReady = false;
 
 
   // ============================================================
-  // PLAYER
+  // ARMORED HERO
+  //
+  // The character flies horizontally, facing forward.
+  // The body itself is drawn at a fixed horizontal angle.
   // ============================================================
 
-  const bird = {
+  const hero = {
+
     x: 100,
+
     y: 300,
-    radius: 17,
+
+    radius: 19,
+
     velocity: 0,
-    rotation: 0
+
+    rotation: 0,
+
+    flameTime: 0
+
   };
 
 
@@ -250,12 +258,19 @@
   // ============================================================
 
   const physics = {
+
     gravity: 1550,
+
     flap: -470,
+
     buildingSpeed: 190,
+
     buildingWidth: 76,
+
     gap: 185,
+
     spawnEvery: 1.45
+
   };
 
 
@@ -265,10 +280,14 @@
 
   function resize() {
 
-    const rect = game.getBoundingClientRect();
+    const rect =
+      game.getBoundingClientRect();
 
     const dpr =
-      Math.min(window.devicePixelRatio || 1, 2);
+      Math.min(
+        window.devicePixelRatio || 1,
+        2
+      );
 
     W = rect.width;
     H = rect.height;
@@ -295,26 +314,33 @@
     );
 
     groundY =
-      H - Math.max(65, H * 0.10);
+      H - Math.max(
+        65,
+        H * 0.10
+      );
 
     if (state === "ready") {
-      bird.x = W * 0.25;
-      bird.y = H * 0.45;
+
+      hero.x =
+        W * 0.25;
+
+      hero.y =
+        H * 0.45;
+
     }
 
     createBackground();
 
   }
 
-  window.addEventListener("resize", resize);
+  window.addEventListener(
+    "resize",
+    resize
+  );
 
 
   // ============================================================
-  // SEEDED RANDOM NUMBER
-  //
-  // This is important:
-  // Background details are generated once instead of using
-  // Math.random() every frame. This prevents flashing.
+  // SEEDED RANDOM
   // ============================================================
 
   function seededRandom(seed) {
@@ -330,7 +356,7 @@
 
 
   // ============================================================
-  // CREATE STATIC BACKGROUND
+  // STATIC BACKGROUND
   // ============================================================
 
   function createBackground() {
@@ -338,21 +364,24 @@
     backgroundStars = [];
     distantBuildings = [];
 
-    // ----------------------------
-    // STARS
-    // ----------------------------
+    // Stars
 
     const starCount =
       Math.floor(
         W * H / 7000
       );
 
-    for (let i = 0; i < starCount; i++) {
+    for (
+      let i = 0;
+      i < starCount;
+      i++
+    ) {
 
       backgroundStars.push({
 
         x:
-          seededRandom(i + 10) * W,
+          seededRandom(i + 10) *
+          W,
 
         y:
           seededRandom(i + 100) *
@@ -361,36 +390,37 @@
 
         size:
           0.5 +
-          seededRandom(i + 200) * 1.5,
+          seededRandom(i + 200) *
+          1.5,
 
         brightness:
           0.35 +
-          seededRandom(i + 300) * 0.5
+          seededRandom(i + 300) *
+          0.5
 
       });
 
     }
 
 
-    // ----------------------------
-    // DISTANT SKYLINE
-    // ----------------------------
+    // Distant buildings
 
     const buildingWidth = 45;
 
     let x = -10;
-
     let index = 0;
 
     while (x < W + 50) {
 
       const height =
         100 +
-        seededRandom(index + 500) * 190;
+        seededRandom(index + 500) *
+        190;
 
       const width =
         30 +
-        seededRandom(index + 600) * 25;
+        seededRandom(index + 600) *
+        25;
 
       const type =
         Math.floor(
@@ -428,16 +458,17 @@
             row * 100 +
             col;
 
-          const lit =
+          if (
             seededRandom(
               windowSeed + 800
-            ) > 0.42;
-
-          if (lit) {
+            ) > 0.42
+          ) {
 
             windows.push({
 
-              x: 7 + col * 13,
+              x:
+                7 +
+                col * 13,
 
               y:
                 10 +
@@ -475,25 +506,28 @@
 
 
   // ============================================================
-  // RESET PLAYER
+  // RESET HERO
   // ============================================================
 
-  function resetBird() {
+  function resetHero() {
 
-    bird.x =
+    hero.x =
       W * 0.25;
 
-    bird.y =
+    hero.y =
       H * 0.45;
 
-    bird.velocity = 0;
-    bird.rotation = 0;
+    hero.velocity = 0;
+
+    hero.rotation = 0;
+
+    hero.flameTime = 0;
 
   }
 
 
   // ============================================================
-  // START GAME
+  // START
   // ============================================================
 
   function startGame() {
@@ -507,7 +541,7 @@
 
     buildingTimer = 0;
 
-    resetBird();
+    resetHero();
 
     scoreEl.textContent = "0";
 
@@ -519,7 +553,7 @@
 
 
   // ============================================================
-  // END GAME
+  // GAME OVER
   // ============================================================
 
   function endGame() {
@@ -556,8 +590,8 @@
       "block";
 
     createParticles(
-      bird.x,
-      bird.y,
+      hero.x,
+      hero.y,
       24
     );
 
@@ -565,7 +599,7 @@
 
 
   // ============================================================
-  // FLAP
+  // FLAP / BOOST
   // ============================================================
 
   function flap() {
@@ -573,12 +607,12 @@
     if (state !== "playing")
       return;
 
-    bird.velocity =
+    hero.velocity =
       physics.flap;
 
     createParticles(
-      bird.x - 18,
-      bird.y + 6,
+      hero.x - 20,
+      hero.y + 8,
       4
     );
 
@@ -591,18 +625,23 @@
 
   function handleInput(e) {
 
-    if (e) {
+    if (e)
       e.preventDefault();
-    }
 
     if (state === "ready") {
+
       startGame();
+
       return;
+
     }
 
     if (state === "gameover") {
+
       startGame();
+
       return;
+
     }
 
     flap();
@@ -659,97 +698,7 @@
 
 
   // ============================================================
-  // CREATE BUILDING OBSTACLE
-  // ============================================================
-
-  function spawnBuildingPair() {
-
-    const minTop = 85;
-
-    const maxTop =
-      groundY -
-      physics.gap -
-      95;
-
-    const topHeight =
-      minTop +
-      Math.random() *
-      Math.max(
-        35,
-        maxTop - minTop
-      );
-
-    const styles = [
-      "office",
-      "brick",
-      "glass",
-      "old",
-      "modern"
-    ];
-
-    const style =
-      styles[
-        Math.floor(
-          Math.random() *
-          styles.length
-        )
-      ];
-
-
-    // Each obstacle gets its own static
-    // window layout.
-
-    const topWindows =
-      createBuildingWindows(
-        physics.buildingWidth,
-        topHeight,
-        style,
-        Math.floor(
-          Math.random() * 100000
-        )
-      );
-
-    const bottomHeight =
-      groundY -
-      (topHeight + physics.gap);
-
-    const bottomWindows =
-      createBuildingWindows(
-        physics.buildingWidth,
-        bottomHeight,
-        style,
-        Math.floor(
-          Math.random() * 100000
-        )
-      );
-
-
-    buildings.push({
-
-      x:
-        W + physics.buildingWidth,
-
-      top:
-        topHeight,
-
-      gap:
-        physics.gap,
-
-      style,
-
-      topWindows,
-
-      bottomWindows,
-
-      counted: false
-
-    });
-
-  }
-
-
-  // ============================================================
-  // STATIC BUILDING WINDOWS
+  // BUILDING WINDOWS
   // ============================================================
 
   function createBuildingWindows(
@@ -764,7 +713,6 @@
     if (height < 45)
       return windows;
 
-
     const columns =
       Math.max(
         2,
@@ -775,7 +723,6 @@
       Math.floor(
         (height - 18) / 18
       );
-
 
     for (
       let row = 0;
@@ -796,10 +743,6 @@
             col * 31
           );
 
-
-        // Some buildings have darker
-        // windows than others.
-
         let threshold = 0.35;
 
         if (style === "old")
@@ -807,7 +750,6 @@
 
         if (style === "glass")
           threshold = 0.22;
-
 
         if (value > threshold) {
 
@@ -852,6 +794,108 @@
 
 
   // ============================================================
+  // SPAWN BUILDING PAIR
+  // ============================================================
+
+  function spawnBuildingPair() {
+
+    const minTop = 85;
+
+    const maxTop =
+      groundY -
+      physics.gap -
+      95;
+
+    const topHeight =
+      minTop +
+      Math.random() *
+      Math.max(
+        35,
+        maxTop - minTop
+      );
+
+    const styles = [
+      "office",
+      "brick",
+      "glass",
+      "old",
+      "modern"
+    ];
+
+    const style =
+      styles[
+        Math.floor(
+          Math.random() *
+          styles.length
+        )
+      ];
+
+
+    const topSeed =
+      Math.floor(
+        Math.random() *
+        1000000
+      );
+
+    const bottomSeed =
+      Math.floor(
+        Math.random() *
+        1000000
+      );
+
+
+    const topWindows =
+      createBuildingWindows(
+        physics.buildingWidth,
+        topHeight,
+        style,
+        topSeed
+      );
+
+
+    const bottomHeight =
+      groundY -
+      (
+        topHeight +
+        physics.gap
+      );
+
+
+    const bottomWindows =
+      createBuildingWindows(
+        physics.buildingWidth,
+        bottomHeight,
+        style,
+        bottomSeed
+      );
+
+
+    buildings.push({
+
+      x:
+        W +
+        physics.buildingWidth,
+
+      top:
+        topHeight,
+
+      gap:
+        physics.gap,
+
+      style,
+
+      topWindows,
+
+      bottomWindows,
+
+      counted: false
+
+    });
+
+  }
+
+
+  // ============================================================
   // UPDATE
   // ============================================================
 
@@ -866,25 +910,33 @@
     }
 
 
-    // Player
+    // Gravity
 
-    bird.velocity +=
+    hero.velocity +=
       physics.gravity * dt;
 
-    bird.y +=
-      bird.velocity * dt;
+    hero.y +=
+      hero.velocity * dt;
 
-    bird.rotation =
+
+    // Small rotation based on movement,
+    // but the character remains essentially
+    // horizontal.
+
+    hero.rotation =
       Math.min(
-        Math.PI / 2,
+        0.20,
         Math.max(
-          -0.5,
-          bird.velocity / 600
+          -0.20,
+          hero.velocity / 2800
         )
       );
 
 
-    // Building spawning
+    hero.flameTime += dt;
+
+
+    // Building timer
 
     buildingTimer += dt;
 
@@ -900,9 +952,12 @@
     }
 
 
-    // Move buildings
+    // Buildings
 
-    for (const building of buildings) {
+    for (
+      const building
+      of buildings
+    ) {
 
       building.x -=
         physics.buildingSpeed * dt;
@@ -912,7 +967,7 @@
         !building.counted &&
         building.x +
         physics.buildingWidth <
-        bird.x
+        hero.x
       ) {
 
         building.counted = true;
@@ -923,8 +978,8 @@
           score;
 
         createParticles(
-          bird.x,
-          bird.y,
+          hero.x,
+          hero.y,
           6
         );
 
@@ -956,8 +1011,8 @@
   function checkCollisions() {
 
     if (
-      bird.y -
-      bird.radius <=
+      hero.y -
+      hero.radius <=
       0
     ) {
 
@@ -969,8 +1024,8 @@
 
 
     if (
-      bird.y +
-      bird.radius >=
+      hero.y +
+      hero.radius >=
       groundY
     ) {
 
@@ -981,7 +1036,10 @@
     }
 
 
-    for (const building of buildings) {
+    for (
+      const building
+      of buildings
+    ) {
 
       const left =
         building.x;
@@ -998,34 +1056,34 @@
         building.gap;
 
 
-      const birdLeft =
-        bird.x -
-        bird.radius *
-        0.75;
+      const heroLeft =
+        hero.x -
+        hero.radius *
+        0.85;
 
-      const birdRight =
-        bird.x +
-        bird.radius *
-        0.75;
+      const heroRight =
+        hero.x +
+        hero.radius *
+        0.85;
 
-      const birdTop =
-        bird.y -
-        bird.radius *
-        0.75;
+      const heroTop =
+        hero.y -
+        hero.radius *
+        0.80;
 
-      const birdBottom =
-        bird.y +
-        bird.radius *
-        0.75;
+      const heroBottom =
+        hero.y +
+        hero.radius *
+        0.80;
 
 
       const horizontal =
-        birdRight > left &&
-        birdLeft < right;
+        heroRight > left &&
+        heroLeft < right;
 
       const vertical =
-        birdTop < topBottom ||
-        birdBottom > bottomTop;
+        heroTop < topBottom ||
+        heroBottom > bottomTop;
 
 
       if (
@@ -1084,7 +1142,8 @@
 
         size:
           2 +
-          Math.random() * 3
+          Math.random() *
+          3
 
       });
 
@@ -1095,7 +1154,10 @@
 
   function updateParticles(dt) {
 
-    for (const p of particles) {
+    for (
+      const p
+      of particles
+    ) {
 
       p.life -= dt;
 
@@ -1120,7 +1182,7 @@
 
 
   // ============================================================
-  // DRAW EVERYTHING
+  // DRAW
   // ============================================================
 
   function draw() {
@@ -1137,7 +1199,7 @@
 
     drawParticles();
 
-    drawPlayer();
+    drawHero();
 
     drawGround();
 
@@ -1145,7 +1207,7 @@
 
 
   // ============================================================
-  // SKY
+  // NIGHT SKY
   // ============================================================
 
   function drawNightSky() {
@@ -1241,8 +1303,6 @@
       );
 
 
-    // Soft glow
-
     const glow =
       ctx.createRadialGradient(
         moonX,
@@ -1279,8 +1339,6 @@
     ctx.fill();
 
 
-    // Moon
-
     ctx.fillStyle =
       "#fff3c4";
 
@@ -1296,8 +1354,6 @@
 
     ctx.fill();
 
-
-    // Crescent shadow
 
     ctx.fillStyle =
       "#09152f";
@@ -1318,7 +1374,7 @@
 
 
   // ============================================================
-  // DISTANT CITY
+  // DISTANT NYC SKYLINE
   // ============================================================
 
   function drawDistantCity() {
@@ -1330,8 +1386,6 @@
     const base =
       groundY - 30;
 
-
-    // Far skyline
 
     for (
       const building
@@ -1348,8 +1402,6 @@
         building.height
       );
 
-
-      // Static windows
 
       for (
         const win
@@ -1375,8 +1427,8 @@
         ctx.fillRect(
           building.x + win.x,
           base -
-            building.height +
-            win.y,
+          building.height +
+          win.y,
           4,
           7
         );
@@ -1386,15 +1438,14 @@
     }
 
 
-    // ---------------------------------
-    // Empire-State-Building-style tower
-    // ---------------------------------
+    // Empire-State-Building-inspired silhouette
 
     const center =
       W * 0.48;
 
     const towerBase =
       base;
+
 
     ctx.fillStyle =
       "#050a14";
@@ -1424,8 +1475,6 @@
     );
 
 
-    // Spire
-
     ctx.fillRect(
       center - 2,
       towerBase - 320,
@@ -1433,8 +1482,6 @@
       30
     );
 
-
-    // Static tower windows
 
     ctx.fillStyle =
       "rgba(255,205,100,0.42)";
@@ -1519,7 +1566,7 @@
 
 
   // ============================================================
-  // CITY BUILDING
+  // BUILDING
   // ============================================================
 
   function drawCityBuilding(
@@ -1587,8 +1634,6 @@
     }
 
 
-    // Main body
-
     ctx.fillStyle =
       body;
 
@@ -1599,8 +1644,6 @@
       height
     );
 
-
-    // Side edge
 
     ctx.fillStyle =
       edge;
@@ -1613,10 +1656,9 @@
     );
 
 
-    // Roof
-
     ctx.fillStyle =
       "#0b111e";
+
 
     if (topBuilding) {
 
@@ -1639,9 +1681,7 @@
     }
 
 
-    // ---------------------------------
-    // Windows
-    // ---------------------------------
+    // STATIC WINDOWS
 
     for (
       const win
@@ -1661,16 +1701,14 @@
         continue;
 
 
-      const color =
-        win.warm
-          ? "rgba(255,211,103,"
-          : "rgba(177,214,255,";
-
-
       ctx.fillStyle =
-        color +
-        win.brightness +
-        ")";
+        win.warm
+          ? "rgba(255,211,103," +
+            win.brightness +
+            ")"
+          : "rgba(177,214,255," +
+            win.brightness +
+            ")";
 
 
       let drawY;
@@ -1701,9 +1739,7 @@
     }
 
 
-    // ---------------------------------
-    // Rooftop water tower
-    // ---------------------------------
+    // WATER TOWER
 
     if (
       height > 180 &&
@@ -1752,152 +1788,486 @@
 
 
   // ============================================================
-  // PLAYER
+  // ARMORED HERO
+  //
+  // Original red/gold armored superhero design.
+  // Facing right and flying horizontally.
   // ============================================================
 
-  function drawPlayer() {
+  function drawHero() {
 
     ctx.save();
 
     ctx.translate(
-      bird.x,
-      bird.y
+      hero.x,
+      hero.y
     );
 
     ctx.rotate(
-      bird.rotation
+      hero.rotation
     );
 
 
-    // Jet flame
+    // ----------------------------------------------------------
+    // BLUE FOOT THRUSTERS
+    // ----------------------------------------------------------
 
-    ctx.fillStyle =
-      "#ff9418";
-
-    ctx.beginPath();
-
-    ctx.moveTo(-17, 6);
-    ctx.lineTo(-34, 12);
-    ctx.lineTo(-19, 18);
-    ctx.closePath();
-
-    ctx.fill();
+    const flameWave =
+      Math.sin(
+        hero.flameTime * 18
+      ) * 1.5;
 
 
-    ctx.fillStyle =
-      "#ffe047";
+    // Left foot flame
 
-    ctx.beginPath();
-
-    ctx.moveTo(-18, 8);
-    ctx.lineTo(-29, 12);
-    ctx.lineTo(-19, 14);
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    // Body
-
-    ctx.fillStyle =
-      "#ffd83d";
-
-    ctx.beginPath();
-
-    ctx.ellipse(
-      0,
-      0,
-      20,
-      16,
-      0,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    ctx.strokeStyle =
-      "#9b7200";
-
-    ctx.lineWidth = 2;
-
-    ctx.stroke();
-
-
-    // Wing
-
-    ctx.fillStyle =
-      "#e8af22";
-
-    ctx.beginPath();
-
-    ctx.ellipse(
-      -6,
-      6,
+    drawBlueThruster(
+      -19,
       12,
-      7,
-      -0.3,
-      0,
-      Math.PI * 2
+      flameWave
     );
 
-    ctx.fill();
+
+    // Right foot flame
+
+    drawBlueThruster(
+      -19,
+      -11,
+      -flameWave
+    );
 
 
-    // Eye
+    // ----------------------------------------------------------
+    // CAPE / AIR TRAIL ACCENT
+    // ----------------------------------------------------------
 
     ctx.fillStyle =
-      "#ffffff";
+      "rgba(90,160,255,0.15)";
 
     ctx.beginPath();
 
-    ctx.arc(
-      9,
-      -7,
-      6,
-      0,
-      Math.PI * 2
+    ctx.moveTo(
+      -13,
+      -5
     );
 
-    ctx.fill();
-
-
-    ctx.fillStyle =
-      "#151515";
-
-    ctx.beginPath();
-
-    ctx.arc(
-      11,
-      -7,
-      2.7,
-      0,
-      Math.PI * 2
+    ctx.lineTo(
+      -39,
+      -3
     );
 
-    ctx.fill();
+    ctx.lineTo(
+      -25,
+      3
+    );
 
-
-    // Beak
-
-    ctx.fillStyle =
-      "#f28c28";
-
-    ctx.beginPath();
-
-    ctx.moveTo(17, -1);
-    ctx.lineTo(31, 4);
-    ctx.lineTo(17, 9);
     ctx.closePath();
 
     ctx.fill();
 
 
+    // ----------------------------------------------------------
+    // LEGS
+    // ----------------------------------------------------------
+
+    // Back leg
+
+    ctx.fillStyle =
+      "#a92325";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      -13,
+      5,
+      25,
+      9,
+      4
+    );
+
+    ctx.fill();
+
+
+    // Front leg
+
+    ctx.fillStyle =
+      "#c52c2d";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      -13,
+      -14,
+      25,
+      9,
+      4
+    );
+
+    ctx.fill();
+
+
+    // Gold leg armor
+
+    ctx.fillStyle =
+      "#d9a62b";
+
+    ctx.fillRect(
+      -8,
+      -13,
+      6,
+      7
+    );
+
+    ctx.fillRect(
+      -8,
+      6,
+      6,
+      7
+    );
+
+
+    // ----------------------------------------------------------
+    // TORSO
+    // ----------------------------------------------------------
+
+    ctx.fillStyle =
+      "#a92124";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      -7,
+      -14,
+      29,
+      28,
+      7
+    );
+
+    ctx.fill();
+
+
+    // Torso highlight
+
+    ctx.fillStyle =
+      "#d33131";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      1,
+      -11,
+      16,
+      22,
+      5
+    );
+
+    ctx.fill();
+
+
+    // Gold abdominal armor
+
+    ctx.fillStyle =
+      "#d9a62b";
+
+    ctx.fillRect(
+      -4,
+      -5,
+      6,
+      4
+    );
+
+    ctx.fillRect(
+      -4,
+      1,
+      6,
+      4
+    );
+
+
+    // ----------------------------------------------------------
+    // ARC-CHEST LIGHT
+    // ----------------------------------------------------------
+
+    const coreGlow =
+      ctx.createRadialGradient(
+        8,
+        0,
+        1,
+        8,
+        0,
+        10
+      );
+
+    coreGlow.addColorStop(
+      0,
+      "rgba(190,245,255,0.95)"
+    );
+
+    coreGlow.addColorStop(
+      0.35,
+      "rgba(80,190,255,0.65)"
+    );
+
+    coreGlow.addColorStop(
+      1,
+      "rgba(50,120,255,0)"
+    );
+
+    ctx.fillStyle =
+      coreGlow;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      8,
+      0,
+      10,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+      "#b9f4ff";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      8,
+      0,
+      3.2,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // ----------------------------------------------------------
+    // ARMS
+    // ----------------------------------------------------------
+
+    // Upper arm
+
+    ctx.fillStyle =
+      "#b62628";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      8,
+      -20,
+      25,
+      9,
+      4
+    );
+
+    ctx.fill();
+
+
+    // Forearm
+
+    ctx.fillStyle =
+      "#d12d30";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      27,
+      -20,
+      17,
+      9,
+      4
+    );
+
+    ctx.fill();
+
+
+    // Hand
+
+    ctx.fillStyle =
+      "#e0aa2f";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      44,
+      -15.5,
+      5,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // Lower arm
+
+    ctx.fillStyle =
+      "#b62628";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      8,
+      11,
+      25,
+      9,
+      4
+    );
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+      "#d12d30";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      27,
+      11,
+      17,
+      9,
+      4
+    );
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+      "#e0aa2f";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      44,
+      15.5,
+      5,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // ----------------------------------------------------------
+    // HEAD / HELMET
+    // ----------------------------------------------------------
+
+    ctx.fillStyle =
+      "#c62b2e";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      15,
+      -13,
+      22,
+      26,
+      7
+    );
+
+    ctx.fill();
+
+
+    // Helmet gold faceplate
+
+    ctx.fillStyle =
+      "#e0ad35";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      26,
+      -10
+    );
+
+    ctx.lineTo(
+      38,
+      -7
+    );
+
+    ctx.lineTo(
+      39,
+      7
+    );
+
+    ctx.lineTo(
+      26,
+      10
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    // Faceplate red center
+
+    ctx.fillStyle =
+      "#a92124";
+
+    ctx.fillRect(
+      31,
+      -5,
+      7,
+      10
+    );
+
+
+    // Helmet top ridge
+
+    ctx.fillStyle =
+      "#e0ad35";
+
+    ctx.fillRect(
+      20,
+      -14,
+      14,
+      4
+    );
+
+
+    // Eyes
+
+    ctx.fillStyle =
+      "#bff6ff";
+
+    ctx.fillRect(
+      34,
+      -6,
+      4,
+      2.5
+    );
+
+    ctx.fillRect(
+      34,
+      3.5,
+      4,
+      2.5
+    );
+
+
+    // ----------------------------------------------------------
+    // ARMOR OUTLINE
+    // ----------------------------------------------------------
+
     ctx.strokeStyle =
-      "#9b4e00";
+      "rgba(30,10,10,0.65)";
 
     ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      -7,
+      -14,
+      29,
+      28,
+      7
+    );
 
     ctx.stroke();
 
@@ -1908,12 +2278,114 @@
 
 
   // ============================================================
-  // GROUND / STREET
+  // BLUE THRUSTER
+  // ============================================================
+
+  function drawBlueThruster(
+    x,
+    y,
+    wave
+  ) {
+
+    // Outer glow
+
+    const glow =
+      ctx.createRadialGradient(
+        x - 8,
+        y,
+        1,
+        x - 8,
+        y,
+        15
+      );
+
+    glow.addColorStop(
+      0,
+      "rgba(70,190,255,0.55)"
+    );
+
+    glow.addColorStop(
+      1,
+      "rgba(30,100,255,0)"
+    );
+
+    ctx.fillStyle =
+      glow;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      x - 8,
+      y,
+      15,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // Blue flame
+
+    ctx.fillStyle =
+      "#168cff";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x,
+      y - 4
+    );
+
+    ctx.lineTo(
+      x - 17 - wave,
+      y
+    );
+
+    ctx.lineTo(
+      x,
+      y + 4
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    // White-hot center
+
+    ctx.fillStyle =
+      "#d9f7ff";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x - 1,
+      y - 2
+    );
+
+    ctx.lineTo(
+      x - 9 - wave * 0.4,
+      y
+    );
+
+    ctx.lineTo(
+      x - 1,
+      y + 2
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+  }
+
+
+  // ============================================================
+  // GROUND
   // ============================================================
 
   function drawGround() {
-
-    // Street
 
     ctx.fillStyle =
       "#090d15";
@@ -1983,7 +2455,7 @@
     );
 
 
-    // Distant yellow lights
+    // Yellow city lights
 
     ctx.fillStyle =
       "#dcb72e";
@@ -2046,7 +2518,7 @@
 
 
   // ============================================================
-  // MAIN LOOP
+  // GAME LOOP
   // ============================================================
 
   function loop(timestamp) {
@@ -2054,14 +2526,9 @@
     if (!lastTime)
       lastTime = timestamp;
 
-
     let dt =
       (timestamp - lastTime) /
       1000;
-
-
-    // Prevent huge physics jumps
-    // when the browser pauses the game.
 
     dt =
       Math.min(
@@ -2069,15 +2536,12 @@
         0.035
       );
 
-
     lastTime =
       timestamp;
-
 
     update(dt);
 
     draw();
-
 
     requestAnimationFrame(loop);
 
