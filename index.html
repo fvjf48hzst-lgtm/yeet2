@@ -1,2202 +1,1346 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Night Flight</title>
 
-  <title>Sky Hopper NYC</title>
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
 
-  <style>
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #02040a;
+    font-family: Arial, Helvetica, sans-serif;
+    touch-action: manipulation;
+}
 
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #030610;
-      font-family: Arial, Helvetica, sans-serif;
-    }
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+#game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #02040a;
+}
 
-    #game {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      max-width: 500px;
-      max-height: 900px;
-      overflow: hidden;
-      background: #080d20;
-      box-shadow: 0 0 45px rgba(0, 0, 0, 0.7);
-    }
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
 
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
+#ui {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    color: white;
+    text-align: center;
+}
 
-    #ui {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      text-align: center;
-    }
+#score {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(34px, 7vw, 64px);
+    font-weight: 900;
+    text-shadow:
+        0 3px 0 #000,
+        0 0 12px rgba(255,255,255,.25);
+    z-index: 5;
+}
 
-    #score {
-      position: absolute;
-      top: 28px;
-      left: 0;
-      width: 100%;
-      color: white;
-      font-size: 54px;
-      font-weight: 900;
-      text-shadow:
-        3px 3px 0 #050505,
-        -2px 2px 0 #050505,
-        2px -2px 0 #050505;
-    }
+#best {
+    position: absolute;
+    top: 86px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    letter-spacing: 2px;
+    opacity: .7;
+    text-transform: uppercase;
+}
 
-    #message {
-      position: absolute;
-      left: 50%;
-      top: 43%;
-      transform: translate(-50%, -50%);
-      width: 86%;
-      padding: 28px 22px;
-      border-radius: 18px;
-      background: rgba(5, 8, 20, 0.92);
-      border: 1px solid rgba(255,255,255,0.14);
-      color: white;
-      box-shadow: 0 15px 45px rgba(0,0,0,0.55);
-      pointer-events: auto;
-    }
+.panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(90%, 430px);
+    padding: 30px 24px;
+    border-radius: 18px;
+    background: rgba(4, 7, 16, .9);
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow:
+        0 20px 80px rgba(0,0,0,.6),
+        inset 0 0 30px rgba(255,255,255,.025);
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+    z-index: 10;
+}
 
-    #message h1 {
-      margin: 0 0 12px;
-      font-size: 40px;
-    }
+.panel h1 {
+    margin: 0 0 10px;
+    font-size: clamp(30px, 8vw, 52px);
+    font-weight: 900;
+    letter-spacing: -2px;
+}
 
-    #message p {
-      margin: 8px 0;
-      font-size: 17px;
-      line-height: 1.5;
-      color: #d9e1ff;
-    }
+.panel p {
+    margin: 8px 0;
+    color: #c9cfdd;
+    line-height: 1.5;
+}
 
-    #startButton,
-    #restartButton {
-      margin-top: 17px;
-      padding: 14px 34px;
-      border: none;
-      border-radius: 12px;
-      background: #ffd447;
-      color: #161616;
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 5px 0 #a87e00;
-    }
+.button {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    background: white;
+    color: #080a10;
+    font-weight: 900;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 7px 25px rgba(255,255,255,.15);
+}
 
-    #startButton:active,
-    #restartButton:active {
-      transform: translateY(4px);
-      box-shadow: 0 1px 0 #a87e00;
-    }
+.hidden {
+    display: none !important;
+}
 
-    #gameOver {
-      display: none;
-    }
-
-    #best {
-      font-size: 16px;
-      opacity: 0.8;
-    }
-
-    #hint {
-      position: absolute;
-      bottom: 17px;
-      left: 0;
-      width: 100%;
-      color: rgba(255,255,255,0.75);
-      font-size: 13px;
-      text-shadow: 1px 1px 3px #000;
-    }
-  </style>
+#warning {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: rgba(255,255,255,.38);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+</style>
 </head>
 
 <body>
 
 <div id="game">
 
-  <canvas id="canvas"></canvas>
+<canvas id="canvas"></canvas>
 
-  <div id="ui">
+<div id="ui">
 
     <div id="score">0</div>
+    <div id="best">BEST 0</div>
 
-    <div id="message">
+    <div id="startPanel" class="panel">
+        <h1>NIGHT FLIGHT</h1>
+        <p>Fly through the city.</p>
+        <p>Don't hit the buildings.</p>
+        <p>Try not to explode.</p>
 
-      <div id="startScreen">
-        <h1>🌃 Sky Hopper NYC</h1>
-
-        <p>Fly through the New York skyline!</p>
-
-        <p>Tap, click, or press <b>SPACE</b> to fly.</p>
-
-        <button id="startButton">START FLYING</button>
-      </div>
-
-      <div id="gameOver">
-
-        <h1>💥 CRASH!</h1>
-
-        <p>You flew through <b id="finalScore">0</b> buildings.</p>
-
-        <p id="best">Best: 0</p>
-
-        <button id="restartButton">FLY AGAIN</button>
-
-      </div>
-
+        <div class="button" id="startButton">
+            START FLIGHT
+        </div>
     </div>
 
-    <div id="hint">
-      TAP / CLICK / SPACE = FLY
+    <div id="gameOverPanel" class="panel hidden">
+        <h1>💥 BOOM!</h1>
+
+        <p id="finalScore">Score: 0</p>
+        <p id="finalBest">Best: 0</p>
+
+        <div class="button" id="restartButton">
+            FLY AGAIN
+        </div>
     </div>
 
-  </div>
+    <div id="warning">
+        TAP • CLICK • SPACE • ↑ • W
+    </div>
+
+</div>
 
 </div>
 
 <script>
-(() => {
+"use strict";
 
-  "use strict";
+/* =========================================================
+   CANVAS
+========================================================= */
 
-  // ============================================================
-  // CANVAS
-  // ============================================================
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
+let W = 0;
+let H = 0;
+let DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-  const game = document.getElementById("game");
+function resize() {
 
-  const scoreEl = document.getElementById("score");
-  const message = document.getElementById("message");
-  const startScreen = document.getElementById("startScreen");
-  const gameOverScreen = document.getElementById("gameOver");
-  const startButton = document.getElementById("startButton");
-  const restartButton = document.getElementById("restartButton");
-  const finalScore = document.getElementById("finalScore");
-  const bestEl = document.getElementById("best");
+    W = window.innerWidth;
+    H = window.innerHeight;
 
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
 
-  // ============================================================
-  // GAME STATE
-  // ============================================================
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
 
-  let W = 400;
-  let H = 700;
-  let groundY = 620;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
 
-  let state = "ready";
-  let score = 0;
-
-  let best =
-    Number(localStorage.getItem("skyHopperNYCBest")) || 0;
-
-  let buildings = [];
-  let particles = [];
-
-  let backgroundStars = [];
-  let distantBuildings = [];
-
-  let lastTime = 0;
-  let buildingTimer = 0;
-  let skylineReady = false;
+window.addEventListener("resize", resize);
+resize();
 
 
-  // ============================================================
-  // ARMORED HERO
-  //
-  // The character flies horizontally, facing forward.
-  // The body itself is drawn at a fixed horizontal angle.
-  // ============================================================
+/* =========================================================
+   UI
+========================================================= */
 
-  const hero = {
+const scoreEl = document.getElementById("score");
+const bestEl = document.getElementById("best");
 
-    x: 100,
+const startPanel = document.getElementById("startPanel");
+const gameOverPanel = document.getElementById("gameOverPanel");
 
-    y: 300,
+const startButton = document.getElementById("startButton");
+const restartButton = document.getElementById("restartButton");
 
-    radius: 19,
-
-    velocity: 0,
-
-    rotation: 0,
-
-    flameTime: 0
-
-  };
+const finalScore = document.getElementById("finalScore");
+const finalBest = document.getElementById("finalBest");
 
 
-  // ============================================================
-  // PHYSICS
-  // ============================================================
+/* =========================================================
+   GAME STATE
+========================================================= */
 
-  const physics = {
+let state = "menu";
 
-    gravity: 1550,
+let score = 0;
 
-    flap: -470,
+let best = Number(
+    localStorage.getItem("nightFlightBest") || 0
+);
 
-    buildingSpeed: 190,
+bestEl.textContent = "BEST " + best;
 
-    buildingWidth: 76,
+let lastTime = performance.now();
 
-    gap: 185,
+let gameTime = 0;
 
-    spawnEvery: 1.45
+let slowMotion = 1;
 
-  };
+let shakePower = 0;
+
+let flashAlpha = 0;
+
+let explosionTimer = 0;
+
+let buildingTimer = 0;
 
 
-  // ============================================================
-  // RESIZE
-  // ============================================================
+/* =========================================================
+   PHYSICS
+========================================================= */
 
-  function resize() {
+const gravity = 1450;
+const flapPower = -470;
 
-    const rect =
-      game.getBoundingClientRect();
+const BUILDING_WIDTH = 105;
+const GAP_HEIGHT = 215;
+const BUILDING_SPEED = 250;
 
-    const dpr =
-      Math.min(
-        window.devicePixelRatio || 1,
-        2
-      );
 
-    W = rect.width;
-    H = rect.height;
+/* =========================================================
+   SKINNY HERO
+========================================================= */
 
-    canvas.width =
-      Math.floor(W * dpr);
+let hero = {
 
-    canvas.height =
-      Math.floor(H * dpr);
+    x: 0,
+    y: 0,
 
-    canvas.style.width =
-      W + "px";
+    vy: 0,
 
-    canvas.style.height =
-      H + "px";
+    /*
+       Previously:
+       66 x 34
 
-    ctx.setTransform(
-      dpr,
-      0,
-      0,
-      dpr,
-      0,
-      0
+       Now:
+       much slimmer body.
+    */
+
+    width: 64,
+    height: 25,
+
+    rotation: 0
+};
+
+
+/* =========================================================
+   OBJECT ARRAYS
+========================================================= */
+
+let buildings = [];
+
+let particles = [];
+
+let explosionParticles = [];
+
+let shockwaves = [];
+
+let debris = [];
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function rand(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function rectsOverlap(a, b) {
+
+    return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
     );
+}
 
-    groundY =
-      H - Math.max(
-        65,
-        H * 0.10
-      );
 
-    if (state === "ready") {
+/* =========================================================
+   RESET
+========================================================= */
 
-      hero.x =
-        W * 0.25;
-
-      hero.y =
-        H * 0.45;
-
-    }
-
-    createBackground();
-
-  }
-
-  window.addEventListener(
-    "resize",
-    resize
-  );
-
-
-  // ============================================================
-  // SEEDED RANDOM
-  // ============================================================
-
-  function seededRandom(seed) {
-
-    let x =
-      Math.sin(seed * 12.9898) *
-      43758.5453;
-
-    return x -
-      Math.floor(x);
-
-  }
-
-
-  // ============================================================
-  // STATIC BACKGROUND
-  // ============================================================
-
-  function createBackground() {
-
-    backgroundStars = [];
-    distantBuildings = [];
-
-    // Stars
-
-    const starCount =
-      Math.floor(
-        W * H / 7000
-      );
-
-    for (
-      let i = 0;
-      i < starCount;
-      i++
-    ) {
-
-      backgroundStars.push({
-
-        x:
-          seededRandom(i + 10) *
-          W,
-
-        y:
-          seededRandom(i + 100) *
-          groundY *
-          0.70,
-
-        size:
-          0.5 +
-          seededRandom(i + 200) *
-          1.5,
-
-        brightness:
-          0.35 +
-          seededRandom(i + 300) *
-          0.5
-
-      });
-
-    }
-
-
-    // Distant buildings
-
-    const buildingWidth = 45;
-
-    let x = -10;
-    let index = 0;
-
-    while (x < W + 50) {
-
-      const height =
-        100 +
-        seededRandom(index + 500) *
-        190;
-
-      const width =
-        30 +
-        seededRandom(index + 600) *
-        25;
-
-      const type =
-        Math.floor(
-          seededRandom(index + 700) * 4
-        );
-
-      const windows = [];
-
-      const columns =
-        Math.max(
-          1,
-          Math.floor(width / 13)
-        );
-
-      const rows =
-        Math.max(
-          2,
-          Math.floor(height / 19)
-        );
-
-      for (
-        let row = 0;
-        row < rows;
-        row++
-      ) {
-
-        for (
-          let col = 0;
-          col < columns;
-          col++
-        ) {
-
-          const windowSeed =
-            index * 1000 +
-            row * 100 +
-            col;
-
-          if (
-            seededRandom(
-              windowSeed + 800
-            ) > 0.42
-          ) {
-
-            windows.push({
-
-              x:
-                7 +
-                col * 13,
-
-              y:
-                10 +
-                row * 19
-
-            });
-
-          }
-
-        }
-
-      }
-
-      distantBuildings.push({
-
-        x,
-        width,
-        height,
-        type,
-        windows
-
-      });
-
-      x +=
-        buildingWidth +
-        seededRandom(index + 900) * 8;
-
-      index++;
-
-    }
-
-    skylineReady = true;
-
-  }
-
-
-  // ============================================================
-  // RESET HERO
-  // ============================================================
-
-  function resetHero() {
-
-    hero.x =
-      W * 0.25;
-
-    hero.y =
-      H * 0.45;
-
-    hero.velocity = 0;
-
-    hero.rotation = 0;
-
-    hero.flameTime = 0;
-
-  }
-
-
-  // ============================================================
-  // START
-  // ============================================================
-
-  function startGame() {
-
-    state = "playing";
+function resetGame() {
 
     score = 0;
 
-    buildings = [];
+    scoreEl.textContent = "0";
+
+    gameTime = 0;
+
+    slowMotion = 1;
+
+    shakePower = 0;
+
+    flashAlpha = 0;
+
+    explosionTimer = 0;
+
     particles = [];
+    explosionParticles = [];
+    shockwaves = [];
+    debris = [];
+
+    buildings = [];
+
+    hero.x = W * .25;
+    hero.y = H * .45;
+    hero.vy = 0;
+    hero.rotation = 0;
 
     buildingTimer = 0;
 
-    resetHero();
-
-    scoreEl.textContent = "0";
-
-    message.style.display = "none";
-
-    flap();
-
-  }
+    for (let i = 0; i < 3; i++) {
+        createBuilding(
+            W + 220 + i * 290
+        );
+    }
+}
 
 
-  // ============================================================
-  // GAME OVER
-  // ============================================================
+/* =========================================================
+   START
+========================================================= */
 
-  function endGame() {
+function startGame() {
 
-    if (state !== "playing")
-      return;
+    resetGame();
 
-    state = "gameover";
+    state = "playing";
+
+    startPanel.classList.add("hidden");
+    gameOverPanel.classList.add("hidden");
+
+    lastTime = performance.now();
+}
+
+
+/* =========================================================
+   END GAME
+========================================================= */
+
+function endGame() {
+
+    if (state !== "playing") return;
+
+    state = "exploding";
+
+    slowMotion = .2;
+
+    explosionTimer = 0;
+
+    const explosionX =
+        hero.x + hero.width / 2;
+
+    const explosionY =
+        hero.y + hero.height / 2;
+
+    createMassiveExplosion(
+        explosionX,
+        explosionY
+    );
+
+    shakePower = 42;
+
+    flashAlpha = 1;
 
     finalScore.textContent =
-      score;
+        "Score: " + score;
 
     if (score > best) {
 
-      best = score;
+        best = score;
 
-      localStorage.setItem(
-        "skyHopperNYCBest",
-        best
-      );
-
+        localStorage.setItem(
+            "nightFlightBest",
+            best
+        );
     }
 
-    bestEl.textContent =
-      "Best: " + best;
+    finalBest.textContent =
+        "Best: " + best;
 
-    message.style.display =
-      "block";
+    setTimeout(() => {
 
-    startScreen.style.display =
-      "none";
+        state = "gameover";
 
-    gameOverScreen.style.display =
-      "block";
+        slowMotion = 1;
 
-    createParticles(
-      hero.x,
-      hero.y,
-      24
-    );
+        gameOverPanel.classList.remove(
+            "hidden"
+        );
 
-  }
+    }, 1250);
+}
 
 
-  // ============================================================
-  // FLAP / BOOST
-  // ============================================================
+/* =========================================================
+   CONTROLS
+========================================================= */
 
-  function flap() {
+function flap() {
 
-    if (state !== "playing")
-      return;
-
-    hero.velocity =
-      physics.flap;
-
-    createParticles(
-      hero.x - 20,
-      hero.y + 8,
-      4
-    );
-
-  }
-
-
-  // ============================================================
-  // INPUT
-  // ============================================================
-
-  function handleInput(e) {
-
-    if (e)
-      e.preventDefault();
-
-    if (state === "ready") {
-
-      startGame();
-
-      return;
-
+    if (state === "menu") {
+        startGame();
+        return;
     }
 
     if (state === "gameover") {
-
-      startGame();
-
-      return;
-
+        startGame();
+        return;
     }
 
-    flap();
+    if (state !== "playing") return;
 
-  }
+    hero.vy = flapPower;
+}
 
 
-  window.addEventListener(
-    "keydown",
-    e => {
+window.addEventListener("keydown", e => {
 
-      if (
+    if (
         e.code === "Space" ||
         e.code === "ArrowUp" ||
         e.code === "KeyW"
-      ) {
-
-        handleInput(e);
-
-      }
-
-    }
-  );
-
-
-  canvas.addEventListener(
-    "pointerdown",
-    handleInput
-  );
-
-
-  startButton.addEventListener(
-    "click",
-    e => {
-
-      e.stopPropagation();
-
-      startGame();
-
-    }
-  );
-
-
-  restartButton.addEventListener(
-    "click",
-    e => {
-
-      e.stopPropagation();
-
-      startGame();
-
-    }
-  );
-
-
-  // ============================================================
-  // BUILDING WINDOWS
-  // ============================================================
-
-  function createBuildingWindows(
-    width,
-    height,
-    style,
-    seed
-  ) {
-
-    const windows = [];
-
-    if (height < 45)
-      return windows;
-
-    const columns =
-      Math.max(
-        2,
-        Math.floor(width / 15)
-      );
-
-    const rows =
-      Math.floor(
-        (height - 18) / 18
-      );
-
-    for (
-      let row = 0;
-      row < rows;
-      row++
     ) {
 
-      for (
-        let col = 0;
-        col < columns;
-        col++
-      ) {
+        e.preventDefault();
 
-        const value =
-          seededRandom(
-            seed +
-            row * 137 +
-            col * 31
-          );
-
-        let threshold = 0.35;
-
-        if (style === "old")
-          threshold = 0.48;
-
-        if (style === "glass")
-          threshold = 0.22;
-
-        if (value > threshold) {
-
-          windows.push({
-
-            x:
-              7 +
-              col * 14,
-
-            y:
-              10 +
-              row * 18,
-
-            brightness:
-              0.60 +
-              seededRandom(
-                seed +
-                row * 71 +
-                col * 17 +
-                5000
-              ) * 0.35,
-
-            warm:
-              seededRandom(
-                seed +
-                row * 91 +
-                col * 23 +
-                9000
-              ) > 0.35
-
-          });
-
-        }
-
-      }
-
+        flap();
     }
-
-    return windows;
-
-  }
+});
 
 
-  // ============================================================
-  // SPAWN BUILDING PAIR
-  // ============================================================
+canvas.addEventListener(
+    "pointerdown",
+    e => {
 
-  function spawnBuildingPair() {
+        e.preventDefault();
 
-    const minTop = 85;
+        flap();
+    }
+);
 
-    const maxTop =
-      groundY -
-      physics.gap -
-      95;
+
+startButton.addEventListener(
+    "click",
+    e => {
+
+        e.stopPropagation();
+
+        startGame();
+    }
+);
+
+
+restartButton.addEventListener(
+    "click",
+    e => {
+
+        e.stopPropagation();
+
+        startGame();
+    }
+);
+
+
+/* =========================================================
+   BUILDINGS
+========================================================= */
+
+function createBuilding(x) {
+
+    const gapCenter = rand(
+        H * .28,
+        H * .68
+    );
 
     const topHeight =
-      minTop +
-      Math.random() *
-      Math.max(
-        35,
-        maxTop - minTop
-      );
+        gapCenter - GAP_HEIGHT / 2;
 
-    const styles = [
-      "office",
-      "brick",
-      "glass",
-      "old",
-      "modern"
-    ];
-
-    const style =
-      styles[
-        Math.floor(
-          Math.random() *
-          styles.length
-        )
-      ];
-
-
-    const topSeed =
-      Math.floor(
-        Math.random() *
-        1000000
-      );
-
-    const bottomSeed =
-      Math.floor(
-        Math.random() *
-        1000000
-      );
-
-
-    const topWindows =
-      createBuildingWindows(
-        physics.buildingWidth,
-        topHeight,
-        style,
-        topSeed
-      );
-
-
-    const bottomHeight =
-      groundY -
-      (
-        topHeight +
-        physics.gap
-      );
-
-
-    const bottomWindows =
-      createBuildingWindows(
-        physics.buildingWidth,
-        bottomHeight,
-        style,
-        bottomSeed
-      );
-
+    const bottomY =
+        gapCenter + GAP_HEIGHT / 2;
 
     buildings.push({
 
-      x:
-        W +
-        physics.buildingWidth,
+        x: x,
 
-      top:
-        topHeight,
+        width: BUILDING_WIDTH,
 
-      gap:
-        physics.gap,
+        topHeight: topHeight,
 
-      style,
+        bottomY: bottomY,
 
-      topWindows,
+        passed: false,
 
-      bottomWindows,
-
-      counted: false
-
+        type: Math.floor(
+            rand(0, 5)
+        )
     });
+}
 
-  }
 
+function updateBuildings(dt) {
 
-  // ============================================================
-  // UPDATE
-  // ============================================================
+    buildingTimer -= dt;
 
-  function update(dt) {
+    if (buildingTimer <= 0) {
 
-    if (state !== "playing") {
+        const last =
+            buildings[buildings.length - 1];
 
-      updateParticles(dt);
+        if (!last || last.x < W - 200) {
 
-      return;
+            createBuilding(W + 80);
 
+            buildingTimer = 1.35;
+        }
     }
 
 
-    // Gravity
+    for (
+        let i = buildings.length - 1;
+        i >= 0;
+        i--
+    ) {
 
-    hero.velocity +=
-      physics.gravity * dt;
+        const b = buildings[i];
+
+        b.x -=
+            BUILDING_SPEED * dt;
+
+
+        if (
+            !b.passed &&
+            b.x + b.width < hero.x
+        ) {
+
+            b.passed = true;
+
+            score++;
+
+            scoreEl.textContent =
+                score;
+        }
+
+
+        if (
+            b.x + b.width < -150
+        ) {
+
+            buildings.splice(i, 1);
+        }
+    }
+}
+
+
+/* =========================================================
+   HERO PHYSICS
+========================================================= */
+
+function updateHero(dt) {
+
+    hero.vy +=
+        gravity * dt;
 
     hero.y +=
-      hero.velocity * dt;
+        hero.vy * dt;
 
-
-    // Small rotation based on movement,
-    // but the character remains essentially
-    // horizontal.
 
     hero.rotation =
-      Math.min(
-        0.20,
-        Math.max(
-          -0.20,
-          hero.velocity / 2800
-        )
-      );
-
-
-    hero.flameTime += dt;
-
-
-    // Building timer
-
-    buildingTimer += dt;
-
-    if (
-      buildingTimer >=
-      physics.spawnEvery
-    ) {
-
-      buildingTimer = 0;
-
-      spawnBuildingPair();
-
-    }
-
-
-    // Buildings
-
-    for (
-      const building
-      of buildings
-    ) {
-
-      building.x -=
-        physics.buildingSpeed * dt;
-
-
-      if (
-        !building.counted &&
-        building.x +
-        physics.buildingWidth <
-        hero.x
-      ) {
-
-        building.counted = true;
-
-        score++;
-
-        scoreEl.textContent =
-          score;
-
-        createParticles(
-          hero.x,
-          hero.y,
-          6
+        clamp(
+            hero.vy / 900,
+            -.35,
+            .55
         );
 
-      }
-
-    }
-
-
-    buildings =
-      buildings.filter(
-        building =>
-          building.x +
-          physics.buildingWidth >
-          -40
-      );
-
-
-    checkCollisions();
-
-    updateParticles(dt);
-
-  }
-
-
-  // ============================================================
-  // COLLISION
-  // ============================================================
-
-  function checkCollisions() {
 
     if (
-      hero.y -
-      hero.radius <=
-      0
+        hero.y < -100 ||
+        hero.y > H + 80
     ) {
-
-      endGame();
-
-      return;
-
-    }
-
-
-    if (
-      hero.y +
-      hero.radius >=
-      groundY
-    ) {
-
-      endGame();
-
-      return;
-
-    }
-
-
-    for (
-      const building
-      of buildings
-    ) {
-
-      const left =
-        building.x;
-
-      const right =
-        building.x +
-        physics.buildingWidth;
-
-      const topBottom =
-        building.top;
-
-      const bottomTop =
-        building.top +
-        building.gap;
-
-
-      const heroLeft =
-        hero.x -
-        hero.radius *
-        0.85;
-
-      const heroRight =
-        hero.x +
-        hero.radius *
-        0.85;
-
-      const heroTop =
-        hero.y -
-        hero.radius *
-        0.80;
-
-      const heroBottom =
-        hero.y +
-        hero.radius *
-        0.80;
-
-
-      const horizontal =
-        heroRight > left &&
-        heroLeft < right;
-
-      const vertical =
-        heroTop < topBottom ||
-        heroBottom > bottomTop;
-
-
-      if (
-        horizontal &&
-        vertical
-      ) {
 
         endGame();
 
         return;
-
-      }
-
-    }
-
-  }
-
-
-  // ============================================================
-  // PARTICLES
-  // ============================================================
-
-  function createParticles(
-    x,
-    y,
-    amount
-  ) {
-
-    for (
-      let i = 0;
-      i < amount;
-      i++
-    ) {
-
-      particles.push({
-
-        x,
-
-        y,
-
-        vx:
-          -35 -
-          Math.random() * 75,
-
-        vy:
-          (Math.random() - 0.5) *
-          100,
-
-        life:
-          0.35 +
-          Math.random() *
-          0.35,
-
-        maxLife:
-          0.7,
-
-        size:
-          2 +
-          Math.random() *
-          3
-
-      });
-
-    }
-
-  }
-
-
-  function updateParticles(dt) {
-
-    for (
-      const p
-      of particles
-    ) {
-
-      p.life -= dt;
-
-      p.x +=
-        p.vx * dt;
-
-      p.y +=
-        p.vy * dt;
-
-      p.vy +=
-        200 * dt;
-
     }
 
 
-    particles =
-      particles.filter(
-        p => p.life > 0
-      );
+    /*
+       Skinny collision box.
+       This is slightly smaller than
+       the visual character so the game
+       feels fair.
+    */
 
-  }
+    const hitbox = {
 
+        x: hero.x + 7,
 
-  // ============================================================
-  // DRAW
-  // ============================================================
+        y: hero.y + 5,
 
-  function draw() {
+        width: hero.width - 14,
 
-    drawNightSky();
+        height: hero.height - 10
+    };
 
-    drawStars();
 
-    drawMoon();
+    for (const b of buildings) {
 
-    drawDistantCity();
+        const top = {
 
-    drawMainBuildings();
+            x: b.x,
 
-    drawParticles();
+            y: 0,
 
-    drawHero();
+            width: b.width,
 
-    drawGround();
+            height: b.topHeight
+        };
 
-  }
 
+        const bottom = {
 
-  // ============================================================
-  // NIGHT SKY
-  // ============================================================
+            x: b.x,
 
-  function drawNightSky() {
+            y: b.bottomY,
 
-    const gradient =
-      ctx.createLinearGradient(
-        0,
-        0,
-        0,
-        H
-      );
+            width: b.width,
 
-    gradient.addColorStop(
-      0,
-      "#020615"
-    );
+            height:
+                H - b.bottomY
+        };
 
-    gradient.addColorStop(
-      0.45,
-      "#09152f"
-    );
-
-    gradient.addColorStop(
-      1,
-      "#142844"
-    );
-
-    ctx.fillStyle =
-      gradient;
-
-    ctx.fillRect(
-      0,
-      0,
-      W,
-      H
-    );
-
-  }
-
-
-  // ============================================================
-  // STARS
-  // ============================================================
-
-  function drawStars() {
-
-    for (
-      const star
-      of backgroundStars
-    ) {
-
-      ctx.globalAlpha =
-        star.brightness;
-
-      ctx.fillStyle =
-        "#ffffff";
-
-      ctx.beginPath();
-
-      ctx.arc(
-        star.x,
-        star.y,
-        star.size,
-        0,
-        Math.PI * 2
-      );
-
-      ctx.fill();
-
-    }
-
-    ctx.globalAlpha = 1;
-
-  }
-
-
-  // ============================================================
-  // MOON
-  // ============================================================
-
-  function drawMoon() {
-
-    const moonX =
-      W * 0.78;
-
-    const moonY =
-      H * 0.16;
-
-    const radius =
-      Math.min(
-        42,
-        W * 0.095
-      );
-
-
-    const glow =
-      ctx.createRadialGradient(
-        moonX,
-        moonY,
-        4,
-        moonX,
-        moonY,
-        radius * 2.7
-      );
-
-    glow.addColorStop(
-      0,
-      "rgba(255,245,190,0.22)"
-    );
-
-    glow.addColorStop(
-      1,
-      "rgba(255,245,190,0)"
-    );
-
-    ctx.fillStyle =
-      glow;
-
-    ctx.beginPath();
-
-    ctx.arc(
-      moonX,
-      moonY,
-      radius * 2.7,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    ctx.fillStyle =
-      "#fff3c4";
-
-    ctx.beginPath();
-
-    ctx.arc(
-      moonX,
-      moonY,
-      radius,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    ctx.fillStyle =
-      "#09152f";
-
-    ctx.beginPath();
-
-    ctx.arc(
-      moonX + radius * 0.34,
-      moonY - radius * 0.18,
-      radius * 0.88,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-  }
-
-
-  // ============================================================
-  // DISTANT NYC SKYLINE
-  // ============================================================
-
-  function drawDistantCity() {
-
-    if (!skylineReady)
-      return;
-
-
-    const base =
-      groundY - 30;
-
-
-    for (
-      const building
-      of distantBuildings
-    ) {
-
-      ctx.fillStyle =
-        "#080f1d";
-
-      ctx.fillRect(
-        building.x,
-        base - building.height,
-        building.width,
-        building.height
-      );
-
-
-      for (
-        const win
-        of building.windows
-      ) {
 
         if (
-          win.x + 4 >
-          building.width
-        )
-          continue;
-
-        if (
-          win.y + 7 >
-          building.height
-        )
-          continue;
-
-
-        ctx.fillStyle =
-          "rgba(255,204,92,0.48)";
-
-        ctx.fillRect(
-          building.x + win.x,
-          base -
-          building.height +
-          win.y,
-          4,
-          7
-        );
-
-      }
-
-    }
-
-
-    // Empire-State-Building-inspired silhouette
-
-    const center =
-      W * 0.48;
-
-    const towerBase =
-      base;
-
-
-    ctx.fillStyle =
-      "#050a14";
-
-
-    ctx.fillRect(
-      center - 30,
-      towerBase - 185,
-      60,
-      185
-    );
-
-
-    ctx.fillRect(
-      center - 21,
-      towerBase - 245,
-      42,
-      60
-    );
-
-
-    ctx.fillRect(
-      center - 11,
-      towerBase - 290,
-      22,
-      45
-    );
-
-
-    ctx.fillRect(
-      center - 2,
-      towerBase - 320,
-      4,
-      30
-    );
-
-
-    ctx.fillStyle =
-      "rgba(255,205,100,0.42)";
-
-
-    for (
-      let row = 0;
-      row < 7;
-      row++
-    ) {
-
-      for (
-        let col = 0;
-        col < 4;
-        col++
-      ) {
-
-        if (
-          (row + col) % 3 !== 0
+            rectsOverlap(
+                hitbox,
+                top
+            ) ||
+            rectsOverlap(
+                hitbox,
+                bottom
+            )
         ) {
 
-          ctx.fillRect(
-            center -
-            22 +
-            col * 14,
-            towerBase -
-            168 +
-            row * 20,
-            5,
-            8
-          );
+            endGame();
 
+            return;
         }
-
-      }
-
     }
+}
 
-  }
 
+/* =========================================================
+   SKY
+========================================================= */
 
-  // ============================================================
-  // MAIN BUILDINGS
-  // ============================================================
+function drawSky() {
 
-  function drawMainBuildings() {
+    const gradient =
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            H
+        );
 
-    for (
-      const building
-      of buildings
-    ) {
-
-      drawCityBuilding(
-        building.x,
+    gradient.addColorStop(
         0,
-        physics.buildingWidth,
-        building.top,
-        building.style,
-        building.topWindows,
-        true
-      );
+        "#020611"
+    );
+
+    gradient.addColorStop(
+        .45,
+        "#071327"
+    );
+
+    gradient.addColorStop(
+        1,
+        "#10101b"
+    );
+
+    ctx.fillStyle =
+        gradient;
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
 
 
-      drawCityBuilding(
-        building.x,
-        building.top +
-        building.gap,
-        physics.buildingWidth,
-        groundY -
-        (
-          building.top +
-          building.gap
-        ),
-        building.style,
-        building.bottomWindows,
-        false
-      );
+    /* stars */
 
+    ctx.fillStyle =
+        "rgba(255,255,255,.75)";
+
+    for (let i = 0; i < 130; i++) {
+
+        const x =
+            (i * 83) % W;
+
+        const y =
+            (i * 47) % (H * .55);
+
+        const size =
+            ((i * 17) % 10) / 10 + .35;
+
+        ctx.fillRect(
+            x,
+            y,
+            size,
+            size
+        );
     }
 
-  }
+
+    /* moon */
+
+    const moonX =
+        W * .82;
+
+    const moonY =
+        H * .17;
+
+    const moonR =
+        Math.min(W, H) * .055;
 
 
-  // ============================================================
-  // BUILDING
-  // ============================================================
+    ctx.beginPath();
 
-  function drawCityBuilding(
+    ctx.arc(
+        moonX,
+        moonY,
+        moonR,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle =
+        "#e9edf7";
+
+    ctx.fill();
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        moonX + moonR * .35,
+        moonY - moonR * .12,
+        moonR,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle =
+        "#071327";
+
+    ctx.fill();
+}
+
+
+/* =========================================================
+   DISTANT NYC SKYLINE
+========================================================= */
+
+function drawDistantCity() {
+
+    const base =
+        H * .78;
+
+
+    ctx.fillStyle =
+        "#090d17";
+
+
+    for (let i = 0; i < 42; i++) {
+
+        const width =
+            30 + ((i * 19) % 55);
+
+        const height =
+            60 + ((i * 73) % 160);
+
+        const x =
+            i * (W / 34);
+
+        ctx.fillRect(
+            x,
+            base - height,
+            width,
+            height
+        );
+    }
+
+
+    /* Empire State style silhouette */
+
+    const center =
+        W * .53;
+
+
+    ctx.fillStyle =
+        "#070b13";
+
+
+    ctx.fillRect(
+        center - 38,
+        base - 275,
+        76,
+        275
+    );
+
+
+    ctx.fillRect(
+        center - 25,
+        base - 325,
+        50,
+        50
+    );
+
+
+    ctx.fillRect(
+        center - 14,
+        base - 365,
+        28,
+        40
+    );
+
+
+    ctx.fillRect(
+        center - 3,
+        base - 410,
+        6,
+        45
+    );
+
+
+    /* windows */
+
+    ctx.fillStyle =
+        "rgba(255,210,100,.18)";
+
+    for (let i = 0; i < 90; i++) {
+
+        const x =
+            (i * 71) % W;
+
+        const y =
+            base -
+            ((i * 43) % 190);
+
+        ctx.fillRect(
+            x,
+            y,
+            3,
+            5
+        );
+    }
+}
+
+
+/* =========================================================
+   MAIN BUILDINGS
+========================================================= */
+
+function drawBuilding(b) {
+
+    drawCityBuilding(
+        b.x,
+        0,
+        b.width,
+        b.topHeight,
+        b.type,
+        true
+    );
+
+
+    drawCityBuilding(
+        b.x,
+        b.bottomY,
+        b.width,
+        H - b.bottomY,
+        b.type,
+        false
+    );
+}
+
+
+function drawCityBuilding(
     x,
     y,
     width,
     height,
-    style,
-    windows,
-    topBuilding
-  ) {
+    type,
+    fromTop
+) {
 
-    if (height <= 0)
-      return;
+    if (height <= 0) return;
 
 
-    let body =
-      "#222b3d";
-
-    let edge =
-      "#111827";
+    let baseColor;
 
 
-    if (style === "brick") {
+    if (type === 0)
+        baseColor = "#18202c";
 
-      body =
-        "#493039";
+    if (type === 1)
+        baseColor = "#24262d";
 
-      edge =
-        "#2a1c23";
+    if (type === 2)
+        baseColor = "#142b3b";
 
-    }
+    if (type === 3)
+        baseColor = "#302a29";
 
-
-    if (style === "glass") {
-
-      body =
-        "#183b50";
-
-      edge =
-        "#102632";
-
-    }
-
-
-    if (style === "old") {
-
-      body =
-        "#37343d";
-
-      edge =
-        "#24212a";
-
-    }
-
-
-    if (style === "modern") {
-
-      body =
-        "#29384b";
-
-      edge =
-        "#151f30";
-
-    }
+    if (type === 4)
+        baseColor = "#202938";
 
 
     ctx.fillStyle =
-      body;
+        baseColor;
 
     ctx.fillRect(
-      x,
-      y,
-      width,
-      height
-    );
-
-
-    ctx.fillStyle =
-      edge;
-
-    ctx.fillRect(
-      x + width - 7,
-      y,
-      7,
-      height
-    );
-
-
-    ctx.fillStyle =
-      "#0b111e";
-
-
-    if (topBuilding) {
-
-      ctx.fillRect(
-        x - 3,
-        height - 7,
-        width + 6,
-        7
-      );
-
-    } else {
-
-      ctx.fillRect(
-        x - 3,
+        x,
         y,
-        width + 6,
-        7
-      );
-
-    }
+        width,
+        height
+    );
 
 
-    // STATIC WINDOWS
+    /* roof */
+
+    ctx.fillStyle =
+        "rgba(0,0,0,.35)";
+
+    ctx.fillRect(
+        x,
+        fromTop
+            ? height - 6
+            : y,
+        width,
+        6
+    );
+
+
+    /* windows */
+
+    const cols = 4;
+
+    const rows =
+        Math.floor(
+            height / 30
+        );
+
 
     for (
-      const win
-      of windows
+        let row = 0;
+        row < rows;
+        row++
     ) {
 
-      if (
-        win.x + 6 >
-        width - 5
-      )
-        continue;
+        for (
+            let col = 0;
+            col < cols;
+            col++
+        ) {
 
-      if (
-        win.y + 9 >
-        height - 5
-      )
-        continue;
-
-
-      ctx.fillStyle =
-        win.warm
-          ? "rgba(255,211,103," +
-            win.brightness +
-            ")"
-          : "rgba(177,214,255," +
-            win.brightness +
-            ")";
+            const wx =
+                x +
+                13 +
+                col * 23;
 
 
-      let drawY;
-
-      if (topBuilding) {
-
-        drawY =
-          height -
-          win.y -
-          9;
-
-      } else {
-
-        drawY =
-          y +
-          win.y;
-
-      }
+            let wy;
 
 
-      ctx.fillRect(
-        x + win.x,
-        drawY,
-        6,
-        9
-      );
+            if (fromTop) {
 
+                wy =
+                    height -
+                    23 -
+                    row * 30;
+
+            } else {
+
+                wy =
+                    y +
+                    16 +
+                    row * 30;
+            }
+
+
+            if (
+                wy < y ||
+                wy + 12 >
+                y + height
+            ) {
+                continue;
+            }
+
+
+            const pattern =
+                (
+                    row * 17 +
+                    col * 29 +
+                    type * 13
+                ) % 9;
+
+
+            if (pattern < 2) {
+
+                ctx.fillStyle =
+                    "rgba(255,210,100,.7)";
+
+            } else if (pattern < 4) {
+
+                ctx.fillStyle =
+                    "rgba(160,210,255,.5)";
+
+            } else {
+
+                ctx.fillStyle =
+                    "rgba(100,130,160,.18)";
+            }
+
+
+            ctx.fillRect(
+                wx,
+                wy,
+                9,
+                12
+            );
+        }
     }
 
 
-    // WATER TOWER
+    /* rooftop details */
 
-    if (
-      height > 180 &&
-      Math.floor(x) % 3 === 0
+    if (fromTop) {
+
+        ctx.fillStyle =
+            "rgba(0,0,0,.35)";
+
+
+        if (type === 1) {
+
+            ctx.fillRect(
+                x + 15,
+                height - 23,
+                18,
+                17
+            );
+
+            ctx.fillRect(
+                x + 69,
+                height - 29,
+                14,
+                23
+            );
+
+        } else if (type === 2) {
+
+            ctx.fillRect(
+                x + width / 2 - 2,
+                height - 35,
+                4,
+                29
+            );
+        }
+    }
+}
+
+
+/* =========================================================
+   GROUND
+========================================================= */
+
+function drawGround() {
+
+    const groundY =
+        H * .93;
+
+
+    ctx.fillStyle =
+        "#080b11";
+
+    ctx.fillRect(
+        0,
+        groundY,
+        W,
+        H - groundY
+    );
+
+
+    ctx.fillStyle =
+        "#181b22";
+
+    ctx.fillRect(
+        0,
+        groundY,
+        W,
+        7
+    );
+
+
+    ctx.fillStyle =
+        "#343841";
+
+
+    for (
+        let x = -40;
+        x < W + 40;
+        x += 80
     ) {
 
-      let towerY;
-
-      if (topBuilding) {
-
-        towerY =
-          height - 29;
-
-      } else {
-
-        towerY =
-          y + 28;
-
-      }
-
-
-      ctx.fillStyle =
-        "#13151b";
-
-      ctx.fillRect(
-        x + width / 2 - 9,
-        towerY - 19,
-        18,
-        19
-      );
-
-
-      ctx.fillStyle =
-        "#0b0d12";
-
-      ctx.fillRect(
-        x + width / 2 - 13,
-        towerY - 22,
-        26,
-        4
-      );
-
+        ctx.fillRect(
+            x,
+            groundY + 18,
+            48,
+            4
+        );
     }
+}
 
-  }
 
+/* =========================================================
+   SKINNY ARMORED HERO
+========================================================= */
 
-  // ============================================================
-  // ARMORED HERO
-  //
-  // Original red/gold armored superhero design.
-  // Facing right and flying horizontally.
-  // ============================================================
-
-  function drawHero() {
+function drawHero() {
 
     ctx.save();
 
+
+    const cx =
+        hero.x +
+        hero.width / 2;
+
+    const cy =
+        hero.y +
+        hero.height / 2;
+
+
     ctx.translate(
-      hero.x,
-      hero.y
+        cx,
+        cy
     );
+
 
     ctx.rotate(
-      hero.rotation
+        hero.rotation
     );
 
 
-    // ----------------------------------------------------------
-    // BLUE FOOT THRUSTERS
-    // ----------------------------------------------------------
+    /*
+       BLUE THRUSTERS
+    */
 
-    const flameWave =
-      Math.sin(
-        hero.flameTime * 18
-      ) * 1.5;
+    drawThruster(
+        -29,
+        -6,
+        1
+    );
 
-
-    // Left foot flame
-
-    drawBlueThruster(
-      -19,
-      12,
-      flameWave
+    drawThruster(
+        -29,
+        6,
+        1
     );
 
 
-    // Right foot flame
-
-    drawBlueThruster(
-      -19,
-      -11,
-      -flameWave
-    );
-
-
-    // ----------------------------------------------------------
-    // CAPE / AIR TRAIL ACCENT
-    // ----------------------------------------------------------
+    /*
+       BACK / SHOULDERS
+    */
 
     ctx.fillStyle =
-      "rgba(90,160,255,0.15)";
+        "#781017";
+
 
     ctx.beginPath();
 
-    ctx.moveTo(
-      -13,
-      -5
-    );
+    ctx.moveTo(-19, -8);
 
-    ctx.lineTo(
-      -39,
-      -3
-    );
+    ctx.lineTo(-32, -11);
 
-    ctx.lineTo(
-      -25,
-      3
-    );
+    ctx.lineTo(-38, -4);
+
+    ctx.lineTo(-25, -1);
 
     ctx.closePath();
 
     ctx.fill();
 
 
-    // ----------------------------------------------------------
-    // LEGS
-    // ----------------------------------------------------------
-
-    // Back leg
-
-    ctx.fillStyle =
-      "#a92325";
-
     ctx.beginPath();
 
-    ctx.roundRect(
-      -13,
-      5,
-      25,
-      9,
-      4
-    );
+    ctx.moveTo(-19, 8);
+
+    ctx.lineTo(-32, 11);
+
+    ctx.lineTo(-38, 4);
+
+    ctx.lineTo(-25, 1);
+
+    ctx.closePath();
 
     ctx.fill();
 
 
-    // Front leg
+    /*
+       SKINNY TORSO
+    */
 
-    ctx.fillStyle =
-      "#c52c2d";
-
-    ctx.beginPath();
-
-    ctx.roundRect(
-      -13,
-      -14,
-      25,
-      9,
-      4
-    );
-
-    ctx.fill();
+    const bodyGradient =
+        ctx.createLinearGradient(
+            -15,
+            -12,
+            18,
+            12
+        );
 
 
-    // Gold leg armor
-
-    ctx.fillStyle =
-      "#d9a62b";
-
-    ctx.fillRect(
-      -8,
-      -13,
-      6,
-      7
-    );
-
-    ctx.fillRect(
-      -8,
-      6,
-      6,
-      7
-    );
-
-
-    // ----------------------------------------------------------
-    // TORSO
-    // ----------------------------------------------------------
-
-    ctx.fillStyle =
-      "#a92124";
-
-    ctx.beginPath();
-
-    ctx.roundRect(
-      -7,
-      -14,
-      29,
-      28,
-      7
-    );
-
-    ctx.fill();
-
-
-    // Torso highlight
-
-    ctx.fillStyle =
-      "#d33131";
-
-    ctx.beginPath();
-
-    ctx.roundRect(
-      1,
-      -11,
-      16,
-      22,
-      5
-    );
-
-    ctx.fill();
-
-
-    // Gold abdominal armor
-
-    ctx.fillStyle =
-      "#d9a62b";
-
-    ctx.fillRect(
-      -4,
-      -5,
-      6,
-      4
-    );
-
-    ctx.fillRect(
-      -4,
-      1,
-      6,
-      4
-    );
-
-
-    // ----------------------------------------------------------
-    // ARC-CHEST LIGHT
-    // ----------------------------------------------------------
-
-    const coreGlow =
-      ctx.createRadialGradient(
-        8,
+    bodyGradient.addColorStop(
         0,
+        "#94151d"
+    );
+
+    bodyGradient.addColorStop(
+        .5,
+        "#e12a33"
+    );
+
+    bodyGradient.addColorStop(
         1,
-        8,
-        0,
-        10
-      );
-
-    coreGlow.addColorStop(
-      0,
-      "rgba(190,245,255,0.95)"
+        "#711018"
     );
-
-    coreGlow.addColorStop(
-      0.35,
-      "rgba(80,190,255,0.65)"
-    );
-
-    coreGlow.addColorStop(
-      1,
-      "rgba(50,120,255,0)"
-    );
-
-    ctx.fillStyle =
-      coreGlow;
-
-    ctx.beginPath();
-
-    ctx.arc(
-      8,
-      0,
-      10,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
 
 
     ctx.fillStyle =
-      "#b9f4ff";
+        bodyGradient;
 
-    ctx.beginPath();
-
-    ctx.arc(
-      8,
-      0,
-      3.2,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    // ----------------------------------------------------------
-    // ARMS
-    // ----------------------------------------------------------
-
-    // Upper arm
-
-    ctx.fillStyle =
-      "#b62628";
 
     ctx.beginPath();
 
     ctx.roundRect(
-      8,
-      -20,
-      25,
-      9,
-      4
+        -18,
+        -9,
+        39,
+        18,
+        6
     );
 
     ctx.fill();
 
 
-    // Forearm
+    /*
+       CHEST GOLD STRIP
+    */
 
     ctx.fillStyle =
-      "#d12d30";
+        "#dca82e";
 
-    ctx.beginPath();
-
-    ctx.roundRect(
-      27,
-      -20,
-      17,
-      9,
-      4
-    );
-
-    ctx.fill();
-
-
-    // Hand
-
-    ctx.fillStyle =
-      "#e0aa2f";
-
-    ctx.beginPath();
-
-    ctx.arc(
-      44,
-      -15.5,
-      5,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    // Lower arm
-
-    ctx.fillStyle =
-      "#b62628";
-
-    ctx.beginPath();
-
-    ctx.roundRect(
-      8,
-      11,
-      25,
-      9,
-      4
-    );
-
-    ctx.fill();
-
-
-    ctx.fillStyle =
-      "#d12d30";
-
-    ctx.beginPath();
-
-    ctx.roundRect(
-      27,
-      11,
-      17,
-      9,
-      4
-    );
-
-    ctx.fill();
-
-
-    ctx.fillStyle =
-      "#e0aa2f";
-
-    ctx.beginPath();
-
-    ctx.arc(
-      44,
-      15.5,
-      5,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    // ----------------------------------------------------------
-    // HEAD / HELMET
-    // ----------------------------------------------------------
-
-    ctx.fillStyle =
-      "#c62b2e";
-
-    ctx.beginPath();
-
-    ctx.roundRect(
-      15,
-      -13,
-      22,
-      26,
-      7
-    );
-
-    ctx.fill();
-
-
-    // Helmet gold faceplate
-
-    ctx.fillStyle =
-      "#e0ad35";
 
     ctx.beginPath();
 
     ctx.moveTo(
-      26,
-      -10
+        -4,
+        -9
     );
 
     ctx.lineTo(
-      38,
-      -7
+        15,
+        -7
     );
 
     ctx.lineTo(
-      39,
-      7
+        18,
+        0
     );
 
     ctx.lineTo(
-      26,
-      10
+        15,
+        7
+    );
+
+    ctx.lineTo(
+        -4,
+        9
     );
 
     ctx.closePath();
@@ -2204,362 +1348,1128 @@
     ctx.fill();
 
 
-    // Faceplate red center
+    /*
+       BLUE ARC REACTOR
+    */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        7,
+        0,
+        4.2,
+        0,
+        Math.PI * 2
+    );
+
 
     ctx.fillStyle =
-      "#a92124";
+        "#bcecff";
 
-    ctx.fillRect(
-      31,
-      -5,
-      7,
-      10
-    );
+    ctx.shadowBlur = 15;
 
+    ctx.shadowColor =
+        "#20aaff";
 
-    // Helmet top ridge
+    ctx.fill();
 
-    ctx.fillStyle =
-      "#e0ad35";
-
-    ctx.fillRect(
-      20,
-      -14,
-      14,
-      4
-    );
+    ctx.shadowBlur = 0;
 
 
-    // Eyes
-
-    ctx.fillStyle =
-      "#bff6ff";
-
-    ctx.fillRect(
-      34,
-      -6,
-      4,
-      2.5
-    );
-
-    ctx.fillRect(
-      34,
-      3.5,
-      4,
-      2.5
-    );
-
-
-    // ----------------------------------------------------------
-    // ARMOR OUTLINE
-    // ----------------------------------------------------------
+    /*
+       SKINNY ARMS
+    */
 
     ctx.strokeStyle =
-      "rgba(30,10,10,0.65)";
+        "#9c1821";
 
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 5;
+
+    ctx.lineCap = "round";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        5,
+        -7
+    );
+
+    ctx.lineTo(
+        22,
+        -12
+    );
+
+    ctx.lineTo(
+        28,
+        -9
+    );
+
+    ctx.stroke();
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        5,
+        7
+    );
+
+    ctx.lineTo(
+        22,
+        12
+    );
+
+    ctx.lineTo(
+        28,
+        9
+    );
+
+    ctx.stroke();
+
+
+    /*
+       GOLD FOREARM DETAILS
+    */
+
+    ctx.strokeStyle =
+        "#e0ad36";
+
+    ctx.lineWidth = 2;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        19,
+        -11
+    );
+
+    ctx.lineTo(
+        26,
+        -9
+    );
+
+    ctx.stroke();
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        19,
+        11
+    );
+
+    ctx.lineTo(
+        26,
+        9
+    );
+
+    ctx.stroke();
+
+
+    /*
+       HEAD / HELMET
+    */
+
+    const helmetGradient =
+        ctx.createLinearGradient(
+            14,
+            -11,
+            33,
+            8
+        );
+
+
+    helmetGradient.addColorStop(
+        0,
+        "#e33138"
+    );
+
+    helmetGradient.addColorStop(
+        .6,
+        "#b91923"
+    );
+
+    helmetGradient.addColorStop(
+        1,
+        "#731017"
+    );
+
+
+    ctx.fillStyle =
+        helmetGradient;
+
 
     ctx.beginPath();
 
     ctx.roundRect(
-      -7,
-      -14,
-      29,
-      28,
-      7
+        15,
+        -9,
+        19,
+        18,
+        6
+    );
+
+    ctx.fill();
+
+
+    /*
+       GOLD FACEPLATE
+    */
+
+    ctx.fillStyle =
+        "#e3b13b";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        25,
+        -6
+    );
+
+    ctx.lineTo(
+        35,
+        -3
+    );
+
+    ctx.lineTo(
+        35,
+        3
+    );
+
+    ctx.lineTo(
+        25,
+        6
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /*
+       EYE SLIT
+    */
+
+    ctx.fillStyle =
+        "#e9fbff";
+
+    ctx.shadowBlur = 7;
+
+    ctx.shadowColor =
+        "#37c8ff";
+
+
+    ctx.fillRect(
+        27,
+        -3,
+        6,
+        2
+    );
+
+
+    ctx.fillRect(
+        27,
+        1,
+        6,
+        2
+    );
+
+
+    ctx.shadowBlur = 0;
+
+
+    /*
+       ARMOR LINES
+    */
+
+    ctx.strokeStyle =
+        "rgba(255,255,255,.18)";
+
+    ctx.lineWidth = 1;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        -12,
+        -7
+    );
+
+    ctx.lineTo(
+        -1,
+        -4
+    );
+
+    ctx.stroke();
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        -12,
+        7
+    );
+
+    ctx.lineTo(
+        -1,
+        4
     );
 
     ctx.stroke();
 
 
     ctx.restore();
+}
 
-  }
 
+/* =========================================================
+   THRUSTERS
+========================================================= */
 
-  // ============================================================
-  // BLUE THRUSTER
-  // ============================================================
-
-  function drawBlueThruster(
+function drawThruster(
     x,
     y,
-    wave
-  ) {
+    direction
+) {
 
-    // Outer glow
-
-    const glow =
-      ctx.createRadialGradient(
-        x - 8,
-        y,
-        1,
-        x - 8,
-        y,
-        15
-      );
-
-    glow.addColorStop(
-      0,
-      "rgba(70,190,255,0.55)"
-    );
-
-    glow.addColorStop(
-      1,
-      "rgba(30,100,255,0)"
-    );
-
-    ctx.fillStyle =
-      glow;
-
-    ctx.beginPath();
-
-    ctx.arc(
-      x - 8,
-      y,
-      15,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.fill();
+    const length =
+        rand(10, 18);
 
 
-    // Blue flame
-
-    ctx.fillStyle =
-      "#168cff";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      x,
-      y - 4
-    );
-
-    ctx.lineTo(
-      x - 17 - wave,
-      y
-    );
-
-    ctx.lineTo(
-      x,
-      y + 4
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-
-    // White-hot center
-
-    ctx.fillStyle =
-      "#d9f7ff";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      x - 1,
-      y - 2
-    );
-
-    ctx.lineTo(
-      x - 9 - wave * 0.4,
-      y
-    );
-
-    ctx.lineTo(
-      x - 1,
-      y + 2
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-
-  }
-
-
-  // ============================================================
-  // GROUND
-  // ============================================================
-
-  function drawGround() {
-
-    ctx.fillStyle =
-      "#090d15";
-
-    ctx.fillRect(
-      0,
-      groundY,
-      W,
-      H - groundY
-    );
-
-
-    // Sidewalk
-
-    ctx.fillStyle =
-      "#292d36";
-
-    ctx.fillRect(
-      0,
-      groundY,
-      W,
-      12
-    );
-
-
-    // Sidewalk seams
-
-    ctx.strokeStyle =
-      "#444953";
-
-    ctx.lineWidth = 2;
-
-
-    for (
-      let x = -20;
-      x < W + 40;
-      x += 40
-    ) {
-
-      ctx.beginPath();
-
-      ctx.moveTo(
-        x,
-        groundY
-      );
-
-      ctx.lineTo(
-        x - 15,
-        H
-      );
-
-      ctx.stroke();
-
-    }
-
-
-    // Road stripe
-
-    ctx.fillStyle =
-      "#1b2029";
-
-    ctx.fillRect(
-      0,
-      groundY + 35,
-      W,
-      5
-    );
-
-
-    // Yellow city lights
-
-    ctx.fillStyle =
-      "#dcb72e";
-
-    for (
-      let x = 20;
-      x < W;
-      x += 100
-    ) {
-
-      ctx.fillRect(
-        x,
-        groundY + 53,
-        20,
-        4
-      );
-
-    }
-
-  }
-
-
-  // ============================================================
-  // PARTICLES
-  // ============================================================
-
-  function drawParticles() {
-
-    for (
-      const p
-      of particles
-    ) {
-
-      ctx.globalAlpha =
-        Math.max(
-          0,
-          p.life / p.maxLife
+    const gradient =
+        ctx.createLinearGradient(
+            x,
+            y,
+            x - length,
+            y
         );
 
-      ctx.fillStyle =
-        "#ffffff";
 
-      ctx.beginPath();
-
-      ctx.arc(
-        p.x,
-        p.y,
-        p.size,
+    gradient.addColorStop(
         0,
-        Math.PI * 2
-      );
+        "#e9fbff"
+    );
 
-      ctx.fill();
+    gradient.addColorStop(
+        .25,
+        "#45c8ff"
+    );
 
+    gradient.addColorStop(
+        1,
+        "rgba(20,130,255,0)"
+    );
+
+
+    ctx.fillStyle =
+        gradient;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x,
+        y - 3
+    );
+
+    ctx.lineTo(
+        x - length,
+        y
+    );
+
+    ctx.lineTo(
+        x,
+        y + 3
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+}
+
+
+/* =========================================================
+   NORMAL PARTICLES
+========================================================= */
+
+function spawnNormalParticle() {
+
+    particles.push({
+
+        x: hero.x - 20,
+
+        y:
+            hero.y +
+            hero.height / 2 +
+            rand(-5, 5),
+
+        vx: rand(-50, -15),
+
+        vy: rand(-20, 20),
+
+        life: .3,
+
+        size: rand(1, 3)
+    });
+}
+
+
+function updateNormalParticles(dt) {
+
+    for (
+        let i = particles.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const p =
+            particles[i];
+
+        p.life -= dt;
+
+        p.x +=
+            p.vx * dt;
+
+        p.y +=
+            p.vy * dt;
+
+        if (p.life <= 0) {
+
+            particles.splice(
+                i,
+                1
+            );
+        }
+    }
+}
+
+
+function drawNormalParticles() {
+
+    for (const p of particles) {
+
+        ctx.globalAlpha =
+            Math.max(
+                0,
+                p.life / .3
+            );
+
+        ctx.fillStyle =
+            "#3ebcff";
+
+        ctx.fillRect(
+            p.x,
+            p.y,
+            p.size,
+            p.size
+        );
     }
 
     ctx.globalAlpha = 1;
+}
 
-  }
+
+/* =========================================================
+   MASSIVE EXPLOSION
+========================================================= */
+
+function createMassiveExplosion(
+    x,
+    y
+) {
+
+    /*
+       HUGE central fireball
+    */
+
+    for (let i = 0; i < 120; i++) {
+
+        const angle =
+            Math.random() *
+            Math.PI * 2;
+
+        const speed =
+            rand(80, 850);
+
+        explosionParticles.push({
+
+            x: x + rand(-8, 8),
+
+            y: y + rand(-8, 8),
+
+            vx:
+                Math.cos(angle) *
+                speed,
+
+            vy:
+                Math.sin(angle) *
+                speed,
+
+            life:
+                rand(.45, 1.5),
+
+            maxLife:
+                1.5,
+
+            size:
+                rand(2, 12),
+
+            type:
+                Math.random()
+        });
+    }
 
 
-  // ============================================================
-  // GAME LOOP
-  // ============================================================
+    /*
+       Massive smoke
+    */
 
-  function loop(timestamp) {
+    for (let i = 0; i < 55; i++) {
 
-    if (!lastTime)
-      lastTime = timestamp;
+        const angle =
+            Math.random() *
+            Math.PI * 2;
+
+        const distance =
+            rand(0, 80);
+
+        explosionParticles.push({
+
+            x:
+                x +
+                Math.cos(angle) *
+                distance,
+
+            y:
+                y +
+                Math.sin(angle) *
+                distance,
+
+            vx:
+                Math.cos(angle) *
+                rand(10, 180),
+
+            vy:
+                Math.sin(angle) *
+                rand(10, 180) -
+                rand(20, 100),
+
+            life:
+                rand(.8, 2.1),
+
+            maxLife:
+                2.1,
+
+            size:
+                rand(12, 38),
+
+            type:
+                2
+        });
+    }
+
+
+    /*
+       Shockwaves
+    */
+
+    shockwaves.push({
+
+        x,
+        y,
+
+        radius: 10,
+
+        maxRadius: 330,
+
+        life: .8,
+
+        maxLife: .8,
+
+        width: 9
+    });
+
+
+    shockwaves.push({
+
+        x,
+        y,
+
+        radius: 5,
+
+        maxRadius: 180,
+
+        life: .5,
+
+        maxLife: .5,
+
+        width: 4
+    });
+
+
+    /*
+       Building debris
+    */
+
+    for (let i = 0; i < 45; i++) {
+
+        const angle =
+            Math.random() *
+            Math.PI * 2;
+
+        const speed =
+            rand(100, 700);
+
+        debris.push({
+
+            x: x + rand(-25, 25),
+
+            y: y + rand(-25, 25),
+
+            vx:
+                Math.cos(angle) *
+                speed,
+
+            vy:
+                Math.sin(angle) *
+                speed,
+
+            rotation:
+                rand(0, Math.PI * 2),
+
+            rotationSpeed:
+                rand(-10, 10),
+
+            size:
+                rand(3, 13),
+
+            life:
+                rand(.6, 1.8),
+
+            maxLife:
+                1.8
+        });
+    }
+
+
+    /*
+       White-hot flash
+    */
+
+    flashAlpha = 1;
+}
+
+
+/* =========================================================
+   EXPLOSION UPDATE
+========================================================= */
+
+function updateExplosion(dt) {
+
+    const explosionDt =
+        dt * slowMotion;
+
+
+    explosionTimer += dt;
+
+
+    for (
+        let i =
+            explosionParticles.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const p =
+            explosionParticles[i];
+
+        p.life -=
+            explosionDt;
+
+        p.x +=
+            p.vx * explosionDt;
+
+        p.y +=
+            p.vy * explosionDt;
+
+
+        if (p.type === 2) {
+
+            p.vy -=
+                25 * explosionDt;
+
+            p.vx *=
+                .985;
+
+            p.vy *=
+                .985;
+
+        } else {
+
+            p.vy +=
+                260 * explosionDt;
+
+            p.vx *=
+                .992;
+
+            p.vy *=
+                .992;
+        }
+
+
+        if (p.life <= 0) {
+
+            explosionParticles.splice(
+                i,
+                1
+            );
+        }
+    }
+
+
+    for (
+        let i = debris.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const d =
+            debris[i];
+
+        d.life -=
+            explosionDt;
+
+        d.x +=
+            d.vx * explosionDt;
+
+        d.y +=
+            d.vy * explosionDt;
+
+        d.vy +=
+            500 * explosionDt;
+
+        d.rotation +=
+            d.rotationSpeed *
+            explosionDt;
+
+        d.vx *=
+            .985;
+
+
+        if (d.life <= 0) {
+
+            debris.splice(
+                i,
+                1
+            );
+        }
+    }
+
+
+    for (
+        let i = shockwaves.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const s =
+            shockwaves[i];
+
+        s.life -=
+            explosionDt;
+
+        const progress =
+            1 -
+            s.life /
+            s.maxLife;
+
+        s.radius =
+            lerp(
+                5,
+                s.maxRadius,
+                progress
+            );
+
+
+        if (s.life <= 0) {
+
+            shockwaves.splice(
+                i,
+                1
+            );
+        }
+    }
+
+
+    shakePower *=
+        Math.pow(
+            .035,
+            explosionDt
+        );
+
+
+    flashAlpha *=
+        Math.pow(
+            .012,
+            explosionDt
+        );
+}
+
+
+/* =========================================================
+   EXPLOSION DRAW
+========================================================= */
+
+function drawExplosion() {
+
+    /*
+       White flash
+    */
+
+    if (flashAlpha > .01) {
+
+        ctx.fillStyle =
+            "rgba(255,245,220," +
+            flashAlpha * .55 +
+            ")";
+
+        ctx.fillRect(
+            0,
+            0,
+            W,
+            H
+        );
+    }
+
+
+    /*
+       Shockwaves
+    */
+
+    for (const s of shockwaves) {
+
+        const alpha =
+            Math.max(
+                0,
+                s.life /
+                s.maxLife
+            );
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            s.x,
+            s.y,
+            s.radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.strokeStyle =
+            "rgba(255,220,150," +
+            alpha +
+            ")";
+
+        ctx.lineWidth =
+            s.width *
+            alpha;
+
+        ctx.stroke();
+    }
+
+
+    /*
+       Fire / smoke particles
+    */
+
+    for (
+        const p of explosionParticles
+    ) {
+
+        const alpha =
+            clamp(
+                p.life /
+                p.maxLife,
+                0,
+                1
+            );
+
+
+        ctx.globalAlpha =
+            alpha;
+
+
+        if (p.type === 2) {
+
+            /*
+               Smoke
+            */
+
+            ctx.fillStyle =
+                "rgba(40,43,48,.8)";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x,
+                p.y,
+                p.size *
+                (1.2 - alpha * .2),
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+        } else {
+
+            /*
+               Fireball
+            */
+
+            const fireGradient =
+                ctx.createRadialGradient(
+                    p.x,
+                    p.y,
+                    0,
+                    p.x,
+                    p.y,
+                    p.size
+                );
+
+
+            fireGradient.addColorStop(
+                0,
+                "#fffde0"
+            );
+
+            fireGradient.addColorStop(
+                .25,
+                "#fff08a"
+            );
+
+            fireGradient.addColorStop(
+                .6,
+                "#ff9c1a"
+            );
+
+            fireGradient.addColorStop(
+                1,
+                "rgba(220,35,10,0)"
+            );
+
+
+            ctx.fillStyle =
+                fireGradient;
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x,
+                p.y,
+                p.size,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+    }
+
+
+    ctx.globalAlpha = 1;
+
+
+    /*
+       Debris
+    */
+
+    for (const d of debris) {
+
+        const alpha =
+            clamp(
+                d.life /
+                d.maxLife,
+                0,
+                1
+            );
+
+        ctx.save();
+
+        ctx.globalAlpha =
+            alpha;
+
+        ctx.translate(
+            d.x,
+            d.y
+        );
+
+        ctx.rotate(
+            d.rotation
+        );
+
+        ctx.fillStyle =
+            "#7c7e82";
+
+        ctx.fillRect(
+            -d.size / 2,
+            -d.size / 2,
+            d.size,
+            d.size
+        );
+
+        ctx.restore();
+    }
+
+    ctx.globalAlpha = 1;
+}
+
+
+/* =========================================================
+   SCREEN SHAKE
+========================================================= */
+
+function beginShake() {
+
+    if (shakePower <= .1) return;
+
+    const x =
+        rand(
+            -shakePower,
+            shakePower
+        );
+
+    const y =
+        rand(
+            -shakePower,
+            shakePower
+        );
+
+    ctx.translate(
+        x,
+        y
+    );
+}
+
+
+/* =========================================================
+   MAIN DRAW
+========================================================= */
+
+function draw() {
+
+    ctx.save();
+
+    beginShake();
+
+    drawSky();
+
+    drawDistantCity();
+
+
+    for (const b of buildings) {
+
+        drawBuilding(b);
+    }
+
+
+    drawGround();
+
+
+    if (
+        state === "playing" ||
+        state === "menu"
+    ) {
+
+        drawNormalParticles();
+
+        drawHero();
+    }
+
+
+    if (
+        state === "exploding" ||
+        state === "gameover"
+    ) {
+
+        drawExplosion();
+    }
+
+
+    ctx.restore();
+}
+
+
+/* =========================================================
+   MAIN UPDATE
+========================================================= */
+
+function update(dt) {
+
+    if (state === "playing") {
+
+        gameTime += dt;
+
+        updateHero(dt);
+
+        if (state !== "playing") {
+            return;
+        }
+
+        updateBuildings(dt);
+
+        spawnNormalParticle();
+
+        updateNormalParticles(dt);
+
+    } else if (
+        state === "exploding"
+    ) {
+
+        updateExplosion(dt);
+    }
+}
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+function loop(now) {
 
     let dt =
-      (timestamp - lastTime) /
-      1000;
+        (now - lastTime) /
+        1000;
+
+    lastTime = now;
 
     dt =
-      Math.min(
-        dt,
-        0.035
-      );
-
-    lastTime =
-      timestamp;
+        Math.min(
+            dt,
+            .035
+        );
 
     update(dt);
 
     draw();
 
-    requestAnimationFrame(loop);
+    requestAnimationFrame(
+        loop
+    );
+}
 
-  }
 
+resetGame();
 
-  // ============================================================
-  // INITIALIZE
-  // ============================================================
+requestAnimationFrame(
+    loop
+);
 
-  resize();
-
-  bestEl.textContent =
-    "Best: " + best;
-
-  requestAnimationFrame(loop);
-
-})();
 </script>
 
 </body>
