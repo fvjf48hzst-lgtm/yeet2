@@ -6,88 +6,87 @@
 <title>NYC Night Flight</title>
 
 <style>
-    * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-    }
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
 
-    html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #050817;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #050817;
+    font-family: Arial, Helvetica, sans-serif;
+}
 
-    canvas {
-        display: block;
-        width: 100vw;
-        height: 100vh;
-        touch-action: none;
-    }
+canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    touch-action: none;
+}
 
-    #ui {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        color: white;
-    }
+#ui {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    color: white;
+}
 
-    #score {
-        position: absolute;
-        top: 18px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 42px;
-        font-weight: 900;
-        text-shadow:
-            0 3px 0 #000,
-            0 0 12px rgba(255,255,255,.35);
-        z-index: 5;
-    }
+#score {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 42px;
+    font-weight: 900;
+    text-shadow:
+        0 3px 0 #000,
+        0 0 12px rgba(255,255,255,.35);
+}
 
-    #best {
-        position: absolute;
-        top: 67px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 14px;
-        font-weight: bold;
-        opacity: .75;
-        text-shadow: 0 2px 3px #000;
-    }
+#best {
+    position: absolute;
+    top: 67px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    font-weight: bold;
+    opacity: .75;
+    text-shadow: 0 2px 3px #000;
+}
 
-    #hint {
-        position: absolute;
-        bottom: 22px;
-        width: 100%;
-        text-align: center;
-        font-size: 13px;
-        opacity: .55;
-    }
+#hint {
+    position: absolute;
+    bottom: 22px;
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    opacity: .55;
+}
 
-    #start {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        pointer-events: auto;
-        border: 2px solid rgba(255,255,255,.65);
-        background: rgba(5,10,25,.82);
-        color: white;
-        padding: 15px 27px;
-        border-radius: 14px;
-        font-size: 20px;
-        font-weight: 900;
-        cursor: pointer;
-        box-shadow: 0 8px 35px rgba(0,0,0,.45);
-    }
+#start {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    border: 2px solid rgba(255,255,255,.65);
+    background: rgba(5,10,25,.82);
+    color: white;
+    padding: 15px 27px;
+    border-radius: 14px;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 8px 35px rgba(0,0,0,.45);
+}
 
-    #start:active {
-        transform: translate(-50%, -50%) scale(.96);
-    }
+#start:active {
+    transform: translate(-50%, -50%) scale(.96);
+}
 </style>
 </head>
 
@@ -120,19 +119,22 @@ function resize() {
 
     canvas.width = W * dpr;
     canvas.height = H * dpr;
+
     canvas.style.width = W + "px";
     canvas.style.height = H + "px";
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    createSkyline();
 }
 
 window.addEventListener("resize", resize);
 resize();
 
 
-// --------------------------------------------------
+// ==================================================
 // GAME STATE
-// --------------------------------------------------
+// ==================================================
 
 let state = "menu";
 
@@ -145,40 +147,40 @@ const gravity = 1250;
 const flapPower = -390;
 const buildingSpeed = 215;
 
-let spawnTimer = 0;
-
 let shakePower = 0;
 let explosionTimer = 0;
 
 let buildings = [];
+let skyline = [];
+
 let particles = [];
 let explosionParticles = [];
 let shockwaves = [];
 let debris = [];
 
 
-// --------------------------------------------------
-// HERO
-// --------------------------------------------------
+// ==================================================
+// SKINNY HERO
+// ==================================================
 
 const hero = {
     x: 0,
     y: 0,
     vy: 0,
     rotation: 0,
+
+    // Skinny body
     width: 64,
     height: 24
 };
 
 
-// --------------------------------------------------
-// SKYLINE
-// --------------------------------------------------
-
-const skyline = [];
+// ==================================================
+// NYC SKYLINE
+// ==================================================
 
 function createSkyline() {
-    skyline.length = 0;
+    skyline = [];
 
     let x = 0;
 
@@ -186,17 +188,17 @@ function createSkyline() {
         const width = 45 + Math.random() * 75;
         const height = 90 + Math.random() * 180;
 
-        skyline.push({
+        const building = {
             x,
             width,
             height,
             windows: []
-        });
+        };
 
         for (let wx = 10; wx < width - 8; wx += 13) {
             for (let wy = 12; wy < height - 8; wy += 18) {
                 if (Math.random() > 0.42) {
-                    skyline[skyline.length - 1].windows.push({
+                    building.windows.push({
                         x: wx,
                         y: wy
                     });
@@ -204,33 +206,36 @@ function createSkyline() {
             }
         }
 
+        skyline.push(building);
+
         x += width + 5;
     }
 }
 
-createSkyline();
 
-
-// --------------------------------------------------
-// BUILDINGS / OBSTACLES
-// --------------------------------------------------
+// ==================================================
+// OBSTACLES
+// ==================================================
 
 function createBuilding(x) {
-    const gap = Math.max(145, Math.min(205, H * 0.23));
+    const gap = Math.max(
+        145,
+        Math.min(205, H * 0.23)
+    );
 
     const minTop = 70;
     const maxTop = H - gap - 100;
 
     const topHeight =
-        minTop + Math.random() * Math.max(30, maxTop - minTop);
-
-    const bottomY = topHeight + gap;
+        minTop +
+        Math.random() *
+        Math.max(30, maxTop - minTop);
 
     return {
-        x: x,
+        x,
         width: 90 + Math.random() * 45,
-        topHeight: topHeight,
-        bottomY: bottomY,
+        topHeight,
+        bottomY: topHeight + gap,
         scored: false
     };
 }
@@ -241,16 +246,15 @@ function resetBuildings() {
     let x = W + 220;
 
     for (let i = 0; i < 4; i++) {
-        const b = createBuilding(x);
-        buildings.push(b);
+        buildings.push(createBuilding(x));
         x += 310 + Math.random() * 100;
     }
 }
 
 
-// --------------------------------------------------
-// START / RESET
-// --------------------------------------------------
+// ==================================================
+// RESET / START
+// ==================================================
 
 function resetGame() {
     score = 0;
@@ -268,23 +272,24 @@ function resetGame() {
 
     shakePower = 0;
     explosionTimer = 0;
-    spawnTimer = 0;
 
     resetBuildings();
 }
 
 function startGame() {
     resetGame();
+
     state = "playing";
+
     startBtn.style.display = "none";
 }
 
 startBtn.addEventListener("click", startGame);
 
 
-// --------------------------------------------------
+// ==================================================
 // CONTROLS
-// --------------------------------------------------
+// ==================================================
 
 function flap() {
     if (state === "menu") {
@@ -292,19 +297,21 @@ function flap() {
         return;
     }
 
-    if (state === "playing") {
-        hero.vy = flapPower;
+    if (state !== "playing") {
+        return;
+    }
 
-        for (let i = 0; i < 5; i++) {
-            particles.push({
-                x: hero.x - hero.width / 2,
-                y: hero.y + 7,
-                vx: -40 - Math.random() * 70,
-                vy: (Math.random() - .5) * 50,
-                life: .25 + Math.random() * .2,
-                size: 2 + Math.random() * 2
-            });
-        }
+    hero.vy = flapPower;
+
+    for (let i = 0; i < 5; i++) {
+        particles.push({
+            x: hero.x - hero.width / 2,
+            y: hero.y + 7,
+            vx: -40 - Math.random() * 70,
+            vy: (Math.random() - .5) * 50,
+            life: .25 + Math.random() * .2,
+            size: 2 + Math.random() * 2
+        });
     }
 }
 
@@ -325,32 +332,57 @@ canvas.addEventListener("pointerdown", e => {
 });
 
 
-// --------------------------------------------------
-// BUILDING DRAWING
-// --------------------------------------------------
+// ==================================================
+// BUILDINGS
+// ==================================================
 
 function drawBuilding(b) {
-    // TOP BUILDING
+
+    // Top building
     ctx.fillStyle = "#10182a";
-    ctx.fillRect(b.x, 0, b.width, b.topHeight);
 
-    // roof
+    ctx.fillRect(
+        b.x,
+        0,
+        b.width,
+        b.topHeight
+    );
+
+    // Roof
     ctx.fillStyle = "#172039";
-    ctx.fillRect(b.x - 4, b.topHeight - 7, b.width + 8, 7);
 
-    // windows
-    const windowW = 7;
-    const windowH = 11;
+    ctx.fillRect(
+        b.x - 4,
+        b.topHeight - 7,
+        b.width + 8,
+        7
+    );
 
-    for (let x = b.x + 12; x < b.x + b.width - 7; x += 17) {
-        for (let y = 17; y < b.topHeight - 10; y += 22) {
+    // Top windows
+    for (
+        let x = b.x + 12;
+        x < b.x + b.width - 7;
+        x += 17
+    ) {
+        for (
+            let y = 17;
+            y < b.topHeight - 10;
+            y += 22
+        ) {
             ctx.fillStyle = "#f5c95b";
-            ctx.fillRect(x, y, windowW, windowH);
+
+            ctx.fillRect(
+                x,
+                y,
+                7,
+                11
+            );
         }
     }
 
-    // BOTTOM BUILDING
+    // Bottom building
     ctx.fillStyle = "#10182a";
+
     ctx.fillRect(
         b.x,
         b.bottomY,
@@ -358,7 +390,9 @@ function drawBuilding(b) {
         H - b.bottomY
     );
 
+    // Roof
     ctx.fillStyle = "#172039";
+
     ctx.fillRect(
         b.x - 4,
         b.bottomY,
@@ -366,6 +400,7 @@ function drawBuilding(b) {
         7
     );
 
+    // Bottom windows
     for (
         let x = b.x + 12;
         x < b.x + b.width - 7;
@@ -377,15 +412,21 @@ function drawBuilding(b) {
             y += 22
         ) {
             ctx.fillStyle = "#f5c95b";
-            ctx.fillRect(x, y, windowW, windowH);
+
+            ctx.fillRect(
+                x,
+                y,
+                7,
+                11
+            );
         }
     }
 }
 
 
-// --------------------------------------------------
-// HERO DRAWING
-// --------------------------------------------------
+// ==================================================
+// DETAILED SKINNY ARMORED HERO
+// ==================================================
 
 function drawHero() {
     ctx.save();
@@ -393,102 +434,381 @@ function drawHero() {
     ctx.translate(hero.x, hero.y);
     ctx.rotate(hero.rotation);
 
-    // blue foot thrusters
+    /*
+       BLUE FOOT THRUSTERS
+    */
+
     const flame = 8 + Math.random() * 4;
 
     ctx.beginPath();
-    ctx.moveTo(-30, -4);
+
+    ctx.moveTo(-30, -5);
     ctx.lineTo(-30 - flame, 0);
-    ctx.lineTo(-30, 4);
+    ctx.lineTo(-30, 5);
+
     ctx.closePath();
+
     ctx.fillStyle = "#00bfff";
     ctx.fill();
 
     ctx.beginPath();
+
     ctx.moveTo(-30, -2);
     ctx.lineTo(-30 - flame * .65, 0);
     ctx.lineTo(-30, 2);
+
     ctx.closePath();
-    ctx.fillStyle = "#b9f7ff";
+
+    ctx.fillStyle = "#d9fbff";
     ctx.fill();
 
-    // legs
-    ctx.fillStyle = "#7b111b";
-    ctx.fillRect(-25, 5, 15, 7);
 
-    // main body
+    /*
+       REAR LEGS
+    */
+
+    ctx.fillStyle = "#74131b";
+
+    ctx.beginPath();
+    ctx.roundRect(
+        -28,
+        -3,
+        19,
+        7,
+        3
+    );
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.roundRect(
+        -28,
+        -4,
+        19,
+        7,
+        3
+    );
+    ctx.fill();
+
+
+    /*
+       SKINNY MAIN BODY
+    */
+
     ctx.fillStyle = "#9e1720";
-    ctx.beginPath();
-    ctx.roundRect(-25, -9, 40, 18, 7);
-    ctx.fill();
-
-    // gold chest
-    ctx.fillStyle = "#e7b932";
-    ctx.beginPath();
-    ctx.roundRect(-9, -7, 17, 14, 4);
-    ctx.fill();
-
-    // chest reactor
-    ctx.beginPath();
-    ctx.arc(1, 0, 4, 0, Math.PI * 2);
-    ctx.fillStyle = "#bffaff";
-    ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(1, 0, 2.2, 0, Math.PI * 2);
+
+    ctx.roundRect(
+        -23,
+        -9,
+        40,
+        18,
+        6
+    );
+
+    ctx.fill();
+
+
+    /*
+       DARK ARMOR SIDES
+    */
+
+    ctx.fillStyle = "#6d1119";
+
+    ctx.fillRect(
+        -20,
+        -7,
+        6,
+        14
+    );
+
+    ctx.fillRect(
+        9,
+        -7,
+        6,
+        14
+    );
+
+
+    /*
+       GOLD CHEST PLATE
+    */
+
+    ctx.fillStyle = "#e5b52e";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+        -8,
+        -7,
+        17,
+        14,
+        4
+    );
+
+    ctx.fill();
+
+
+    /*
+       CHEST REACTOR
+    */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        1,
+        0,
+        4,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle = "#9ff5ff";
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.arc(
+        1,
+        0,
+        2.1,
+        0,
+        Math.PI * 2
+    );
+
     ctx.fillStyle = "#ffffff";
     ctx.fill();
 
-    // head
+
+    /*
+       UPPER ARMOR / SHOULDERS
+    */
+
+    ctx.fillStyle = "#b31d27";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+        -17,
+        -14,
+        25,
+        6,
+        3
+    );
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+        -17,
+        8,
+        25,
+        6,
+        3
+    );
+
+    ctx.fill();
+
+
+    /*
+       GOLD SHOULDER ARMOR
+    */
+
+    ctx.fillStyle = "#d4a82e";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -17,
+        -11,
+        5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -17,
+        11,
+        5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    /*
+       FOREARM ARMOR
+    */
+
+    ctx.fillStyle = "#7d121b";
+
+    ctx.fillRect(
+        -7,
+        -15,
+        13,
+        4
+    );
+
+    ctx.fillRect(
+        -7,
+        11,
+        13,
+        4
+    );
+
+
+    /*
+       HANDS
+    */
+
+    ctx.fillStyle = "#d6a82e";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        8,
+        -13,
+        3,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.arc(
+        8,
+        13,
+        3,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    /*
+       HEAD / HELMET
+    */
+
     ctx.fillStyle = "#b51e27";
+
     ctx.beginPath();
-    ctx.roundRect(10, -8, 15, 16, 5);
+
+    ctx.roundRect(
+        10,
+        -8,
+        16,
+        16,
+        5
+    );
+
     ctx.fill();
 
-    // helmet
+
+    /*
+       GOLD HELMET
+    */
+
     ctx.fillStyle = "#d7a92d";
-    ctx.beginPath();
-    ctx.roundRect(17, -7, 9, 14, 3);
-    ctx.fill();
-
-    // visor
-    ctx.fillStyle = "#162d44";
-    ctx.fillRect(22, -4, 7, 8);
-
-    // arms
-    ctx.fillStyle = "#8e141d";
 
     ctx.beginPath();
-    ctx.roundRect(-16, -14, 25, 6, 3);
+
+    ctx.roundRect(
+        17,
+        -7,
+        9,
+        14,
+        3
+    );
+
     ctx.fill();
 
-    ctx.beginPath();
-    ctx.roundRect(-16, 8, 25, 6, 3);
-    ctx.fill();
 
-    // shoulder armor
-    ctx.fillStyle = "#d2a62c";
-    ctx.beginPath();
-    ctx.arc(-16, -11, 5, 0, Math.PI * 2);
-    ctx.fill();
+    /*
+       HELMET SIDE
+    */
 
-    ctx.beginPath();
-    ctx.arc(-16, 11, 5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillStyle = "#a91821";
+
+    ctx.fillRect(
+        12,
+        -5,
+        6,
+        10
+    );
+
+
+    /*
+       VISOR
+    */
+
+    ctx.fillStyle = "#142a41";
+
+    ctx.fillRect(
+        21,
+        -4,
+        8,
+        8
+    );
+
+    ctx.fillStyle = "#5ed7e8";
+
+    ctx.fillRect(
+        22,
+        -3,
+        5,
+        2
+    );
+
+
+    /*
+       SMALL GOLD DETAILS
+    */
+
+    ctx.fillStyle = "#f2c83d";
+
+    ctx.fillRect(
+        -12,
+        -5,
+        4,
+        3
+    );
+
+    ctx.fillRect(
+        -12,
+        2,
+        4,
+        3
+    );
 
     ctx.restore();
 }
 
 
-// --------------------------------------------------
+// ==================================================
 // COLLISION
-// --------------------------------------------------
+// ==================================================
 
 function heroHitsBuilding(b) {
-    const left = hero.x - hero.width / 2;
-    const right = hero.x + hero.width / 2;
-    const top = hero.y - hero.height / 2;
-    const bottom = hero.y + hero.height / 2;
+    const left =
+        hero.x - hero.width / 2;
+
+    const right =
+        hero.x + hero.width / 2;
+
+    const top =
+        hero.y - hero.height / 2;
+
+    const bottom =
+        hero.y + hero.height / 2;
 
     if (
         right > b.x &&
@@ -506,58 +826,98 @@ function heroHitsBuilding(b) {
 }
 
 
-// --------------------------------------------------
-// HUGE EXPLOSION
-// --------------------------------------------------
+// ==================================================
+// HUGE COLORFUL EXPLOSION
+// ==================================================
 
 function createExplosion() {
+
     explosionParticles = [];
     shockwaves = [];
     debris = [];
 
-    // Massive fireball particles
+
+    // Main explosion particles
     for (let i = 0; i < 170; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 80 + Math.random() * 700;
+
+        const angle =
+            Math.random() * Math.PI * 2;
+
+        const speed =
+            80 + Math.random() * 700;
 
         const colors = [
             "#ffffff",
-            "#fff4a3",
+            "#fff6a8",
             "#ffd21f",
             "#ff9d00",
-            "#ff4d00",
-            "#e51b23",
-            "#8f1018"
+            "#ff5500",
+            "#e91d23",
+            "#a8121b"
         ];
 
         explosionParticles.push({
             x: hero.x,
             y: hero.y,
+
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
+
             life: .45 + Math.random() * 1.05,
-            maxLife: 1.5,
-            size: 2 + Math.random() * 9,
-            color: colors[Math.floor(Math.random() * colors.length)]
+
+            size:
+                2 + Math.random() * 9,
+
+            color:
+                colors[
+                    Math.floor(
+                        Math.random() *
+                        colors.length
+                    )
+                ]
         });
     }
 
-    // Large fireball core
-    for (let i = 0; i < 55; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const distance = Math.random() * 65;
+
+    // Dense fireball
+    for (let i = 0; i < 60; i++) {
+
+        const angle =
+            Math.random() * Math.PI * 2;
+
+        const distance =
+            Math.random() * 65;
 
         explosionParticles.push({
-            x: hero.x + Math.cos(angle) * distance,
-            y: hero.y + Math.sin(angle) * distance,
-            vx: Math.cos(angle) * (30 + Math.random() * 160),
-            vy: Math.sin(angle) * (30 + Math.random() * 160),
-            life: .5 + Math.random() * .5,
-            maxLife: 1,
-            size: 8 + Math.random() * 20,
-            color: Math.random() > .5 ? "#ffae00" : "#ff4a00"
+            x:
+                hero.x +
+                Math.cos(angle) * distance,
+
+            y:
+                hero.y +
+                Math.sin(angle) * distance,
+
+            vx:
+                Math.cos(angle) *
+                (30 + Math.random() * 160),
+
+            vy:
+                Math.sin(angle) *
+                (30 + Math.random() * 160),
+
+            life:
+                .5 + Math.random() * .5,
+
+            size:
+                8 + Math.random() * 20,
+
+            color:
+                Math.random() > .5
+                    ? "#ffae00"
+                    : "#ff4500"
         });
     }
+
 
     // Shockwaves
     shockwaves.push({
@@ -576,36 +936,57 @@ function createExplosion() {
         life: 1
     });
 
-    // Debris
+
+    // Armor debris
     for (let i = 0; i < 35; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 100 + Math.random() * 450;
+
+        const angle =
+            Math.random() * Math.PI * 2;
+
+        const speed =
+            100 + Math.random() * 450;
 
         debris.push({
             x: hero.x,
             y: hero.y,
+
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
-            rotation: Math.random() * Math.PI,
-            spin: (Math.random() - .5) * 15,
-            life: 1 + Math.random(),
-            size: 3 + Math.random() * 8,
-            color: Math.random() > .5 ? "#9b1822" : "#d9aa2c"
+
+            rotation:
+                Math.random() * Math.PI,
+
+            spin:
+                (Math.random() - .5) * 15,
+
+            life:
+                1 + Math.random() * .8,
+
+            size:
+                3 + Math.random() * 8,
+
+            color:
+                Math.random() > .5
+                    ? "#9b1822"
+                    : "#d9aa2c"
         });
     }
 }
 
 
-// --------------------------------------------------
+// ==================================================
 // CRASH
-// --------------------------------------------------
+// ==================================================
 
 function crash() {
-    if (state !== "playing") return;
+
+    if (state !== "playing") {
+        return;
+    }
 
     state = "exploding";
 
-    // SCORE RESETS AFTER CRASH
+    // Reset score immediately
     score = 0;
     scoreEl.textContent = "0";
 
@@ -613,20 +994,21 @@ function crash() {
 
     shakePower = 35;
 
-    // Explosion lasts about 1.3 seconds
     explosionTimer = 1.3;
 }
 
 
-// --------------------------------------------------
+// ==================================================
 // RESPAWN
-// --------------------------------------------------
+// ==================================================
 
 function respawn() {
+
     state = "playing";
 
     hero.x = W * 0.25;
     hero.y = H * 0.45;
+
     hero.vy = 0;
     hero.rotation = 0;
 
@@ -638,23 +1020,26 @@ function respawn() {
     shakePower = 0;
     explosionTimer = 0;
 
-    // Rebuild obstacles so the player doesn't instantly hit
-    // the exact building that caused the explosion.
     resetBuildings();
 }
 
 
-// --------------------------------------------------
-// UPDATE HERO
-// --------------------------------------------------
+// ==================================================
+// HERO UPDATE
+// ==================================================
 
 function updateHero(dt) {
+
     hero.vy += gravity * dt;
+
     hero.y += hero.vy * dt;
 
     hero.rotation = Math.max(
         -0.22,
-        Math.min(0.55, hero.vy / 650)
+        Math.min(
+            .55,
+            hero.vy / 650
+        )
     );
 
     if (
@@ -666,72 +1051,119 @@ function updateHero(dt) {
 }
 
 
-// --------------------------------------------------
-// UPDATE BUILDINGS
-// --------------------------------------------------
+// ==================================================
+// BUILDING UPDATE
+// ==================================================
 
 function updateBuildings(dt) {
+
     for (const b of buildings) {
+
         b.x -= buildingSpeed * dt;
 
+
+        // Score
         if (
             !b.scored &&
             b.x + b.width < hero.x
         ) {
+
             b.scored = true;
+
             score++;
 
             scoreEl.textContent = score;
 
             if (score > best) {
+
                 best = score;
-                bestEl.textContent = "BEST: " + best;
-                localStorage.setItem("nycFlightBest", best);
+
+                bestEl.textContent =
+                    "BEST: " + best;
+
+                localStorage.setItem(
+                    "nycFlightBest",
+                    best
+                );
             }
         }
 
+
+        // Collision
         if (heroHitsBuilding(b)) {
             crash();
         }
     }
 
-    // Add new buildings
-    const last = buildings[buildings.length - 1];
 
-    if (last && last.x < W - 220) {
+    // Spawn more buildings
+    const last =
+        buildings[buildings.length - 1];
+
+    if (
+        last &&
+        last.x < W - 220
+    ) {
         buildings.push(
-            createBuilding(last.x + 310 + Math.random() * 100)
+            createBuilding(
+                last.x +
+                310 +
+                Math.random() * 100
+            )
         );
     }
 
-    buildings = buildings.filter(
-        b => b.x + b.width > -100
-    );
+
+    // Remove old
+    buildings =
+        buildings.filter(
+            b => b.x + b.width > -100
+        );
 }
 
 
-// --------------------------------------------------
-// PARTICLES
-// --------------------------------------------------
+// ==================================================
+// NORMAL PARTICLES
+// ==================================================
 
 function updateParticles(dt) {
+
     for (const p of particles) {
+
         p.x += p.vx * dt;
         p.y += p.vy * dt;
+
         p.life -= dt;
     }
 
-    particles = particles.filter(p => p.life > 0);
+    particles =
+        particles.filter(
+            p => p.life > 0
+        );
 }
 
 function drawParticles() {
+
     for (const p of particles) {
-        ctx.globalAlpha = Math.max(0, p.life * 4);
+
+        ctx.globalAlpha =
+            Math.max(
+                0,
+                p.life * 4
+            );
 
         ctx.fillStyle = "#3fd8ff";
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+
+        ctx.arc(
+            p.x,
+            p.y,
+            p.size,
+            0,
+            Math.PI * 2
+        );
+
         ctx.fill();
     }
 
@@ -739,23 +1171,26 @@ function drawParticles() {
 }
 
 
-// --------------------------------------------------
+// ==================================================
 // EXPLOSION UPDATE
-// --------------------------------------------------
+// ==================================================
 
 function updateExplosion(dt) {
-    // Move buildings during the explosion so the world
-    // doesn't freeze completely.
+
+    // Keep city moving during explosion
     for (const b of buildings) {
-        b.x -= buildingSpeed * dt * 0.55;
+        b.x -= buildingSpeed * dt * .55;
     }
 
+
+    // Fire
     for (const p of explosionParticles) {
+
         p.x += p.vx * dt;
         p.y += p.vy * dt;
 
-        p.vx *= 0.985;
-        p.vy *= 0.985;
+        p.vx *= .985;
+        p.vy *= .985;
 
         p.vy += 260 * dt;
 
@@ -763,34 +1198,53 @@ function updateExplosion(dt) {
     }
 
     explosionParticles =
-        explosionParticles.filter(p => p.life > 0);
+        explosionParticles.filter(
+            p => p.life > 0
+        );
 
+
+    // Shockwaves
     for (const s of shockwaves) {
+
         s.radius +=
-            (s.maxRadius - s.radius) * dt * 5;
+            (s.maxRadius - s.radius) *
+            dt * 5;
 
         s.life -= dt;
     }
 
     shockwaves =
-        shockwaves.filter(s => s.life > 0);
+        shockwaves.filter(
+            s => s.life > 0
+        );
 
+
+    // Debris
     for (const d of debris) {
+
         d.x += d.vx * dt;
         d.y += d.vy * dt;
 
         d.vy += 500 * dt;
-        d.rotation += d.spin * dt;
+
+        d.rotation +=
+            d.spin * dt;
 
         d.life -= dt;
     }
 
     debris =
-        debris.filter(d => d.life > 0);
+        debris.filter(
+            d => d.life > 0
+        );
 
-    // Shake fades naturally
-    shakePower *= Math.pow(0.05, dt);
 
+    // Shake fades
+    shakePower *=
+        Math.pow(.05, dt);
+
+
+    // Respawn
     explosionTimer -= dt;
 
     if (explosionTimer <= 0) {
@@ -799,31 +1253,54 @@ function updateExplosion(dt) {
 }
 
 
-// --------------------------------------------------
-// DRAW EXPLOSION
-// --------------------------------------------------
+// ==================================================
+// EXPLOSION DRAW
+// ==================================================
 
 function drawExplosion() {
-    // Fireball glow — NOT a screen flash.
-    // Everything is localized around the impact.
-    const gradient = ctx.createRadialGradient(
-        hero.x,
-        hero.y,
+
+    // Localized explosion glow.
+    // NO full-screen white flash.
+
+    const gradient =
+        ctx.createRadialGradient(
+            hero.x,
+            hero.y,
+            0,
+            hero.x,
+            hero.y,
+            180
+        );
+
+    gradient.addColorStop(
         0,
-        hero.x,
-        hero.y,
-        180
+        "rgba(255,255,220,.95)"
     );
 
-    gradient.addColorStop(0, "rgba(255,255,220,.95)");
-    gradient.addColorStop(.12, "rgba(255,230,70,.9)");
-    gradient.addColorStop(.32, "rgba(255,110,0,.75)");
-    gradient.addColorStop(.58, "rgba(220,35,10,.35)");
-    gradient.addColorStop(1, "rgba(120,0,0,0)");
+    gradient.addColorStop(
+        .12,
+        "rgba(255,230,70,.9)"
+    );
+
+    gradient.addColorStop(
+        .32,
+        "rgba(255,110,0,.75)"
+    );
+
+    gradient.addColorStop(
+        .58,
+        "rgba(220,35,10,.35)"
+    );
+
+    gradient.addColorStop(
+        1,
+        "rgba(120,0,0,0)"
+    );
 
     ctx.fillStyle = gradient;
 
     ctx.beginPath();
+
     ctx.arc(
         hero.x,
         hero.y,
@@ -831,18 +1308,28 @@ function drawExplosion() {
         0,
         Math.PI * 2
     );
+
     ctx.fill();
+
 
     // Shockwaves
     for (const s of shockwaves) {
+
         ctx.save();
 
-        ctx.globalAlpha = Math.max(0, s.life);
+        ctx.globalAlpha =
+            Math.max(
+                0,
+                s.life
+            );
 
-        ctx.strokeStyle = "#ffb300";
+        ctx.strokeStyle =
+            "#ffb300";
+
         ctx.lineWidth = 5;
 
         ctx.beginPath();
+
         ctx.arc(
             s.x,
             s.y,
@@ -850,12 +1337,17 @@ function drawExplosion() {
             0,
             Math.PI * 2
         );
+
         ctx.stroke();
 
-        ctx.strokeStyle = "#fff4b0";
+
+        ctx.strokeStyle =
+            "#fff4b0";
+
         ctx.lineWidth = 2;
 
         ctx.beginPath();
+
         ctx.arc(
             s.x,
             s.y,
@@ -863,21 +1355,29 @@ function drawExplosion() {
             0,
             Math.PI * 2
         );
+
         ctx.stroke();
 
         ctx.restore();
     }
 
-    // Explosion particles
-    for (const p of explosionParticles) {
-        const alpha =
-            Math.max(0, Math.min(1, p.life * 2));
 
-        ctx.globalAlpha = alpha;
+    // Fire particles
+    for (const p of explosionParticles) {
+
+        ctx.globalAlpha =
+            Math.max(
+                0,
+                Math.min(
+                    1,
+                    p.life * 2
+                )
+            );
 
         ctx.fillStyle = p.color;
 
         ctx.beginPath();
+
         ctx.arc(
             p.x,
             p.y,
@@ -885,22 +1385,38 @@ function drawExplosion() {
             0,
             Math.PI * 2
         );
+
         ctx.fill();
     }
 
     ctx.globalAlpha = 1;
 
+
     // Debris
     for (const d of debris) {
+
         ctx.save();
 
-        ctx.translate(d.x, d.y);
-        ctx.rotate(d.rotation);
+        ctx.translate(
+            d.x,
+            d.y
+        );
+
+        ctx.rotate(
+            d.rotation
+        );
 
         ctx.globalAlpha =
-            Math.max(0, Math.min(1, d.life));
+            Math.max(
+                0,
+                Math.min(
+                    1,
+                    d.life
+                )
+            );
 
-        ctx.fillStyle = d.color;
+        ctx.fillStyle =
+            d.color;
 
         ctx.fillRect(
             -d.size / 2,
@@ -916,27 +1432,48 @@ function drawExplosion() {
 }
 
 
-// --------------------------------------------------
-// BACKGROUND
-// --------------------------------------------------
+// ==================================================
+// SKY
+// ==================================================
 
 function drawSky() {
-    const gradient = ctx.createLinearGradient(
+
+    const gradient =
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            H
+        );
+
+    gradient.addColorStop(
+        0,
+        "#030611"
+    );
+
+    gradient.addColorStop(
+        .55,
+        "#081329"
+    );
+
+    gradient.addColorStop(
+        1,
+        "#11182a"
+    );
+
+    ctx.fillStyle = gradient;
+
+    ctx.fillRect(
         0,
         0,
-        0,
+        W,
         H
     );
 
-    gradient.addColorStop(0, "#030611");
-    gradient.addColorStop(.55, "#081329");
-    gradient.addColorStop(1, "#11182a");
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, W, H);
 
     // Moon
     ctx.beginPath();
+
     ctx.arc(
         W * .78,
         H * .18,
@@ -945,18 +1482,22 @@ function drawSky() {
         Math.PI * 2
     );
 
-    ctx.fillStyle = "#fff8d7";
+    ctx.fillStyle =
+        "#fff8d7";
+
     ctx.fill();
 
-    // subtle moon glow
-    const moonGlow = ctx.createRadialGradient(
-        W * .78,
-        H * .18,
-        35,
-        W * .78,
-        H * .18,
-        100
-    );
+
+    // Moon glow
+    const moonGlow =
+        ctx.createRadialGradient(
+            W * .78,
+            H * .18,
+            35,
+            W * .78,
+            H * .18,
+            100
+        );
 
     moonGlow.addColorStop(
         0,
@@ -968,9 +1509,11 @@ function drawSky() {
         "rgba(255,245,190,0)"
     );
 
-    ctx.fillStyle = moonGlow;
+    ctx.fillStyle =
+        moonGlow;
 
     ctx.beginPath();
+
     ctx.arc(
         W * .78,
         H * .18,
@@ -983,17 +1526,22 @@ function drawSky() {
 }
 
 
-// --------------------------------------------------
-// SKYLINE
-// --------------------------------------------------
+// ==================================================
+// NYC BACKGROUND
+// ==================================================
 
 function drawSkyline() {
+
     const baseY = H;
 
     for (const building of skyline) {
-        const y = baseY - building.height;
 
-        ctx.fillStyle = "#090d18";
+        const y =
+            baseY -
+            building.height;
+
+        ctx.fillStyle =
+            "#090d18";
 
         ctx.fillRect(
             building.x,
@@ -1002,8 +1550,11 @@ function drawSkyline() {
             building.height
         );
 
+
         for (const win of building.windows) {
-            ctx.fillStyle = "#d6b64b";
+
+            ctx.fillStyle =
+                "#d6b64b";
 
             ctx.fillRect(
                 building.x + win.x,
@@ -1016,56 +1567,79 @@ function drawSkyline() {
 }
 
 
-// --------------------------------------------------
-// DRAW
-// --------------------------------------------------
+// ==================================================
+// MAIN DRAW
+// ==================================================
 
 function draw() {
+
     ctx.save();
 
-    // Screen shake ONLY.
-    // No white screen flashing.
-    if (shakePower > 0.1) {
+
+    // Screen shake only.
+    // There is intentionally NO screen flash.
+
+    if (shakePower > .1) {
+
         ctx.translate(
-            (Math.random() - .5) * shakePower,
-            (Math.random() - .5) * shakePower
+            (Math.random() - .5) *
+            shakePower,
+
+            (Math.random() - .5) *
+            shakePower
         );
     }
 
+
     drawSky();
+
     drawSkyline();
+
 
     for (const b of buildings) {
         drawBuilding(b);
     }
 
+
     drawParticles();
+
 
     if (state === "playing") {
         drawHero();
     }
 
+
     if (state === "exploding") {
         drawExplosion();
     }
+
 
     ctx.restore();
 }
 
 
-// --------------------------------------------------
+// ==================================================
 // MAIN LOOP
-// --------------------------------------------------
+// ==================================================
 
-let lastTime = performance.now();
+let lastTime =
+    performance.now();
 
 function loop(now) {
-    let dt = (now - lastTime) / 1000;
+
+    let dt =
+        (now - lastTime) / 1000;
+
     lastTime = now;
 
-    dt = Math.min(dt, .035);
+    dt = Math.min(
+        dt,
+        .035
+    );
+
 
     if (state === "playing") {
+
         updateHero(dt);
 
         if (state === "playing") {
@@ -1075,28 +1649,29 @@ function loop(now) {
         updateParticles(dt);
     }
 
+
     else if (state === "exploding") {
+
         updateExplosion(dt);
     }
+
 
     draw();
 
     requestAnimationFrame(loop);
 }
 
+
+// ==================================================
+// INITIALIZE
+// ==================================================
+
+createSkyline();
+resetGame();
+
 requestAnimationFrame(loop);
 
-
-// --------------------------------------------------
-// MENU
-// --------------------------------------------------
-
-function drawInitialMenu() {
-    resetGame();
-}
-
-drawInitialMenu();
-
 </script>
+
 </body>
 </html>
