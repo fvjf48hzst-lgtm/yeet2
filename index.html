@@ -91,14 +91,25 @@ const ctx = canvas.getContext("2d");
 const scoreEl = document.getElementById("score");
 const bestEl = document.getElementById("best");
 
-let W = window.innerWidth;
-let H = window.innerHeight;
-let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+// =====================================================
+// BACKGROUND MUSIC
+// =====================================================
+
+const music = new Audio("nyc-music.mp3");
+
+music.loop = true;
+music.volume = 0.35;
 
 
 // =====================================================
 // GAME STATE
 // =====================================================
+
+let W = window.innerWidth;
+let H = window.innerHeight;
+let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
 
 let state = "playing";
 
@@ -356,6 +367,20 @@ function resetGame() {
 
 
 // =====================================================
+// START MUSIC
+// =====================================================
+
+function startMusic() {
+
+    if (music.paused) {
+
+        music.play().catch(() => {});
+
+    }
+}
+
+
+// =====================================================
 // FLAP
 // =====================================================
 
@@ -419,6 +444,8 @@ window.addEventListener(
 
             e.preventDefault();
 
+            startMusic();
+
             flap();
         }
     }
@@ -430,6 +457,8 @@ canvas.addEventListener(
     function(e) {
 
         e.preventDefault();
+
+        startMusic();
 
         flap();
     }
@@ -1423,6 +1452,11 @@ function crash() {
 
 function respawn() {
 
+    // Stop and restart music
+    music.pause();
+    music.currentTime = 0;
+
+
     state = "playing";
 
 
@@ -1450,6 +1484,10 @@ function respawn() {
     // New buildings so we don't respawn
     // directly inside another one.
     resetBuildings();
+
+
+    // Start the music again
+    startMusic();
 }
 
 
