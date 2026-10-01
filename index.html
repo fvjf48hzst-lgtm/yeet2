@@ -65,6 +65,170 @@ canvas {
     font-size: 13px;
     opacity: .55;
 }
+
+
+/* =====================================================
+   PAUSE BUTTON
+   ===================================================== */
+
+#pauseButton {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: rgba(5,8,23,.55);
+    color: white;
+
+    font-size: 22px;
+    font-weight: 900;
+
+    cursor: pointer;
+    pointer-events: auto;
+
+    text-shadow: 0 2px 4px #000;
+}
+
+#pauseButton:active {
+    transform: scale(.94);
+}
+
+
+/* =====================================================
+   PAUSE MENU
+   ===================================================== */
+
+#pauseMenu {
+    position: absolute;
+
+    top: 68px;
+    left: 18px;
+
+    width: 220px;
+
+    padding: 15px;
+
+    background: rgba(5,8,23,.94);
+
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 12px;
+
+    box-shadow:
+        0 10px 35px rgba(0,0,0,.55);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    pointer-events: auto;
+
+    display: none;
+}
+
+#pauseMenu.open {
+    display: block;
+}
+
+#pauseTitle {
+    text-align: center;
+
+    font-size: 20px;
+    font-weight: 900;
+
+    margin-bottom: 14px;
+
+    text-shadow:
+        0 2px 5px #000;
+}
+
+.pauseOption {
+    width: 100%;
+
+    margin-bottom: 8px;
+
+    padding: 11px 12px;
+
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 8px;
+
+    background: rgba(255,255,255,.08);
+
+    color: white;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+.pauseOption:last-child {
+    margin-bottom: 0;
+}
+
+.pauseOption:active {
+    transform: scale(.98);
+    background: rgba(255,255,255,.15);
+}
+
+.pauseSetting {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pauseSetting span {
+    opacity: .9;
+}
+
+.toggle {
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.toggle.on {
+    color: #5ee7ff;
+}
+
+.toggle.off {
+    color: #ff7777;
+}
+
+
+/* =====================================================
+   PAUSED OVERLAY
+   ===================================================== */
+
+#pausedText {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(
+        -50%,
+        -50%
+    );
+
+    font-size: 32px;
+    font-weight: 900;
+
+    text-shadow:
+        0 3px 0 #000,
+        0 0 18px rgba(255,255,255,.3);
+
+    display: none;
+}
+
+#pausedText.show {
+    display: block;
+}
 </style>
 </head>
 
@@ -73,9 +237,80 @@ canvas {
 <canvas id="game"></canvas>
 
 <div id="ui">
+
     <div id="score">0</div>
+
     <div id="best">BEST: 0</div>
-    <div id="hint">SPACE / TAP / CLICK / W / ↑</div>
+
+    <div id="hint">
+        SPACE / TAP / CLICK / W / ↑
+    </div>
+
+
+    <!-- PAUSE BUTTON -->
+
+    <button id="pauseButton">
+        ⏸
+    </button>
+
+
+    <!-- PAUSE MENU -->
+
+    <div id="pauseMenu">
+
+        <div id="pauseTitle">
+            PAUSED
+        </div>
+
+        <button
+            class="pauseOption"
+            id="resumeButton"
+        >
+            ▶ RESUME GAME
+        </button>
+
+        <button
+            class="pauseOption"
+            id="restartButton"
+        >
+            ↻ RESTART GAME
+        </button>
+
+        <button
+            class="pauseOption pauseSetting"
+            id="musicButton"
+        >
+            <span>MUSIC</span>
+            <span
+                id="musicStatus"
+                class="toggle on"
+            >
+                ON
+            </span>
+        </button>
+
+        <button
+            class="pauseOption pauseSetting"
+            id="sfxButton"
+        >
+            <span>SOUND EFFECTS</span>
+            <span
+                id="sfxStatus"
+                class="toggle on"
+            >
+                ON
+            </span>
+        </button>
+
+    </div>
+
+
+    <!-- PAUSED TEXT -->
+
+    <div id="pausedText">
+        PAUSED
+    </div>
+
 </div>
 
 <script>
@@ -93,6 +328,38 @@ const bestEl = document.getElementById("best");
 
 
 // =====================================================
+// PAUSE MENU ELEMENTS
+// =====================================================
+
+const pauseButton =
+    document.getElementById("pauseButton");
+
+const pauseMenu =
+    document.getElementById("pauseMenu");
+
+const resumeButton =
+    document.getElementById("resumeButton");
+
+const restartButton =
+    document.getElementById("restartButton");
+
+const musicButton =
+    document.getElementById("musicButton");
+
+const sfxButton =
+    document.getElementById("sfxButton");
+
+const musicStatus =
+    document.getElementById("musicStatus");
+
+const sfxStatus =
+    document.getElementById("sfxStatus");
+
+const pausedText =
+    document.getElementById("pausedText");
+
+
+// =====================================================
 // BACKGROUND MUSIC
 // =====================================================
 
@@ -106,9 +373,18 @@ music.volume = 0.35;
 // EXPLOSION SOUND
 // =====================================================
 
-const explosionSound = new Audio("explosion.mp3");
+const explosionSound =
+    new Audio("explosion.mp3");
 
 explosionSound.volume = 0.8;
+
+
+// =====================================================
+// SOUND SETTINGS
+// =====================================================
+
+let musicEnabled = true;
+let sfxEnabled = true;
 
 
 // =====================================================
@@ -127,7 +403,8 @@ let best = Number(
     localStorage.getItem("nycFlightBest") || 0
 );
 
-bestEl.textContent = "BEST: " + best;
+bestEl.textContent =
+    "BEST: " + best;
 
 
 // =====================================================
@@ -189,8 +466,11 @@ function resize() {
     canvas.width = W * dpr;
     canvas.height = H * dpr;
 
-    canvas.style.width = W + "px";
-    canvas.style.height = H + "px";
+    canvas.style.width =
+        W + "px";
+
+    canvas.style.height =
+        H + "px";
 
     ctx.setTransform(
         dpr,
@@ -231,14 +511,19 @@ function createSkyline() {
             Math.random() * 180;
 
         const building = {
+
             x: x,
+
             width: width,
+
             height: height,
+
             windows: []
         };
 
         // Static windows.
         // They do NOT flash.
+
         for (
             let wx = 10;
             wx < width - 8;
@@ -251,7 +536,9 @@ function createSkyline() {
                 wy += 18
             ) {
 
-                if (Math.random() > .42) {
+                if (
+                    Math.random() > .42
+                ) {
 
                     building.windows.push({
                         x: wx,
@@ -261,9 +548,13 @@ function createSkyline() {
             }
         }
 
-        skyline.push(building);
+        skyline.push(
+            building
+        );
 
-        x += width + 5;
+        x +=
+            width +
+            5;
     }
 }
 
@@ -274,20 +565,22 @@ function createSkyline() {
 
 function createBuilding(x) {
 
-    const gap = Math.max(
-        145,
-        Math.min(
-            205,
-            H * .23
-        )
-    );
+    const gap =
+        Math.max(
+            145,
+            Math.min(
+                205,
+                H * .23
+            )
+        );
 
     const minTop = 70;
 
-    const maxTop = Math.max(
-        minTop + 30,
-        H - gap - 100
-    );
+    const maxTop =
+        Math.max(
+            minTop + 30,
+            H - gap - 100
+        );
 
     const topHeight =
         minTop +
@@ -316,9 +609,14 @@ function resetBuildings() {
 
     buildings = [];
 
-    let x = W + 220;
+    let x =
+        W + 220;
 
-    for (let i = 0; i < 4; i++) {
+    for (
+        let i = 0;
+        i < 4;
+        i++
+    ) {
 
         buildings.push(
             createBuilding(x)
@@ -339,7 +637,8 @@ function resetGame() {
 
     score = 0;
 
-    scoreEl.textContent = "0";
+    scoreEl.textContent =
+        "0";
 
     hero.x =
         W * .25;
@@ -369,12 +668,297 @@ function resetGame() {
 
 function startMusic() {
 
-    if (music.paused) {
+    if (
+        !musicEnabled
+    ) {
+        return;
+    }
 
-        music.play().catch(() => {});
+    if (
+        music.paused
+    ) {
 
+        music.play()
+            .catch(() => {});
     }
 }
+
+
+// =====================================================
+// PAUSE GAME
+// =====================================================
+
+function pauseGame() {
+
+    if (
+        state === "paused"
+    ) {
+        return;
+    }
+
+    // Do not pause during an explosion.
+
+    if (
+        state === "exploding"
+    ) {
+        return;
+    }
+
+    state = "paused";
+
+    music.pause();
+
+    pauseMenu.classList.add(
+        "open"
+    );
+
+    pausedText.classList.add(
+        "show"
+    );
+}
+
+
+// =====================================================
+// RESUME GAME
+// =====================================================
+
+function resumeGame() {
+
+    if (
+        state !== "paused"
+    ) {
+        return;
+    }
+
+    state = "playing";
+
+    pauseMenu.classList.remove(
+        "open"
+    );
+
+    pausedText.classList.remove(
+        "show"
+    );
+
+    startMusic();
+}
+
+
+// =====================================================
+// RESTART GAME
+// =====================================================
+
+function restartGame() {
+
+    // Stop current music
+
+    music.pause();
+
+    music.currentTime = 0;
+
+    // Stop any explosion sound
+
+    explosionSound.pause();
+
+    explosionSound.currentTime = 0;
+
+    // Reset everything
+
+    resetGame();
+
+    state = "playing";
+
+    pauseMenu.classList.remove(
+        "open"
+    );
+
+    pausedText.classList.remove(
+        "show"
+    );
+
+    // Start music again if enabled
+
+    startMusic();
+}
+
+
+// =====================================================
+// TOGGLE MUSIC
+// =====================================================
+
+function toggleMusic() {
+
+    musicEnabled =
+        !musicEnabled;
+
+    if (
+        musicEnabled
+    ) {
+
+        musicStatus.textContent =
+            "ON";
+
+        musicStatus.classList.add(
+            "on"
+        );
+
+        musicStatus.classList.remove(
+            "off"
+        );
+
+        if (
+            state !== "paused"
+        ) {
+
+            startMusic();
+        }
+
+    } else {
+
+        musicStatus.textContent =
+            "OFF";
+
+        musicStatus.classList.remove(
+            "on"
+        );
+
+        musicStatus.classList.add(
+            "off"
+        );
+
+        music.pause();
+    }
+}
+
+
+// =====================================================
+// TOGGLE SOUND EFFECTS
+// =====================================================
+
+function toggleSfx() {
+
+    sfxEnabled =
+        !sfxEnabled;
+
+    if (
+        sfxEnabled
+    ) {
+
+        sfxStatus.textContent =
+            "ON";
+
+        sfxStatus.classList.add(
+            "on"
+        );
+
+        sfxStatus.classList.remove(
+            "off"
+        );
+
+    } else {
+
+        sfxStatus.textContent =
+            "OFF";
+
+        sfxStatus.classList.remove(
+            "on"
+        );
+
+        sfxStatus.classList.add(
+            "off"
+        );
+
+        explosionSound.pause();
+
+        explosionSound.currentTime = 0;
+    }
+}
+
+
+// =====================================================
+// PAUSE BUTTON
+// =====================================================
+
+pauseButton.addEventListener(
+    "click",
+    function(e) {
+
+        e.preventDefault();
+
+        if (
+            state === "playing"
+        ) {
+
+            pauseGame();
+
+        } else if (
+            state === "paused"
+        ) {
+
+            resumeGame();
+        }
+    }
+);
+
+
+// =====================================================
+// RESUME BUTTON
+// =====================================================
+
+resumeButton.addEventListener(
+    "click",
+    function(e) {
+
+        e.preventDefault();
+
+        resumeGame();
+    }
+);
+
+
+// =====================================================
+// RESTART BUTTON
+// =====================================================
+
+restartButton.addEventListener(
+    "click",
+    function(e) {
+
+        e.preventDefault();
+
+        restartGame();
+    }
+);
+
+
+// =====================================================
+// MUSIC BUTTON
+// =====================================================
+
+musicButton.addEventListener(
+    "click",
+    function(e) {
+
+        e.preventDefault();
+
+        toggleMusic();
+    }
+);
+
+
+// =====================================================
+// SFX BUTTON
+// =====================================================
+
+sfxButton.addEventListener(
+    "click",
+    function(e) {
+
+        e.preventDefault();
+
+        toggleSfx();
+    }
+);
 
 
 // =====================================================
@@ -383,7 +967,9 @@ function startMusic() {
 
 function flap() {
 
-    if (state !== "playing") {
+    if (
+        state !== "playing"
+    ) {
         return;
     }
 
@@ -391,7 +977,12 @@ function flap() {
         flapPower;
 
     // Small blue thruster particles
-    for (let i = 0; i < 5; i++) {
+
+    for (
+        let i = 0;
+        i < 5;
+        i++
+    ) {
 
         particles.push({
 
@@ -439,9 +1030,37 @@ window.addEventListener(
 
             e.preventDefault();
 
+            if (
+                state === "paused"
+            ) {
+                return;
+            }
+
             startMusic();
 
             flap();
+        }
+
+        // Escape toggles pause
+
+        if (
+            e.code === "Escape"
+        ) {
+
+            e.preventDefault();
+
+            if (
+                state === "playing"
+            ) {
+
+                pauseGame();
+
+            } else if (
+                state === "paused"
+            ) {
+
+                resumeGame();
+            }
         }
     }
 );
@@ -451,6 +1070,12 @@ canvas.addEventListener(
     function(e) {
 
         e.preventDefault();
+
+        if (
+            state === "paused"
+        ) {
+            return;
+        }
 
         startMusic();
 
@@ -499,6 +1124,7 @@ function drawSky() {
     );
 
     // Moon
+
     ctx.beginPath();
 
     ctx.arc(
@@ -515,6 +1141,7 @@ function drawSky() {
     ctx.fill();
 
     // Moon glow
+
     const glow =
         ctx.createRadialGradient(
             W * .78,
@@ -560,7 +1187,9 @@ function drawSkyline() {
 
     const baseY = H;
 
-    for (const building of skyline) {
+    for (
+        const building of skyline
+    ) {
 
         const y =
             baseY -
@@ -601,6 +1230,7 @@ function drawSkyline() {
 function drawBuilding(b) {
 
     // TOP BUILDING
+
     ctx.fillStyle =
         "#10182a";
 
@@ -612,6 +1242,7 @@ function drawBuilding(b) {
     );
 
     // Roof
+
     ctx.fillStyle =
         "#172039";
 
@@ -623,6 +1254,7 @@ function drawBuilding(b) {
     );
 
     // Windows
+
     for (
         let x = b.x + 12;
         x < b.x + b.width - 7;
@@ -648,6 +1280,7 @@ function drawBuilding(b) {
     }
 
     // BOTTOM BUILDING
+
     ctx.fillStyle =
         "#10182a";
 
@@ -659,6 +1292,7 @@ function drawBuilding(b) {
     );
 
     // Roof
+
     ctx.fillStyle =
         "#172039";
 
@@ -670,6 +1304,7 @@ function drawBuilding(b) {
     );
 
     // Windows
+
     for (
         let x = b.x + 12;
         x < b.x + b.width - 7;
@@ -714,6 +1349,7 @@ function drawHero() {
     );
 
     // BLUE FOOT THRUSTER
+
     const flame =
         8 +
         Math.random() * 4;
@@ -767,6 +1403,7 @@ function drawHero() {
     ctx.fill();
 
     // LEGS
+
     ctx.fillStyle =
         "#74131b";
 
@@ -795,6 +1432,7 @@ function drawHero() {
     ctx.fill();
 
     // SKINNY BODY
+
     ctx.fillStyle =
         "#9e1720";
 
@@ -811,6 +1449,7 @@ function drawHero() {
     ctx.fill();
 
     // Dark side armor
+
     ctx.fillStyle =
         "#6d1119";
 
@@ -829,6 +1468,7 @@ function drawHero() {
     );
 
     // GOLD CHEST
+
     ctx.fillStyle =
         "#e5b52e";
 
@@ -845,6 +1485,7 @@ function drawHero() {
     ctx.fill();
 
     // ARC REACTOR
+
     ctx.beginPath();
 
     ctx.arc(
@@ -876,6 +1517,7 @@ function drawHero() {
     ctx.fill();
 
     // ARMS
+
     ctx.fillStyle =
         "#b31d27";
 
@@ -904,6 +1546,7 @@ function drawHero() {
     ctx.fill();
 
     // GOLD SHOULDERS
+
     ctx.fillStyle =
         "#d4a82e";
 
@@ -932,6 +1575,7 @@ function drawHero() {
     ctx.fill();
 
     // FOREARMS
+
     ctx.fillStyle =
         "#7d121b";
 
@@ -950,6 +1594,7 @@ function drawHero() {
     );
 
     // HANDS
+
     ctx.fillStyle =
         "#d6a82e";
 
@@ -978,6 +1623,7 @@ function drawHero() {
     ctx.fill();
 
     // HEAD
+
     ctx.fillStyle =
         "#b51e27";
 
@@ -994,6 +1640,7 @@ function drawHero() {
     ctx.fill();
 
     // GOLD HELMET
+
     ctx.fillStyle =
         "#d7a92d";
 
@@ -1010,6 +1657,7 @@ function drawHero() {
     ctx.fill();
 
     // Helmet side
+
     ctx.fillStyle =
         "#a91821";
 
@@ -1021,6 +1669,7 @@ function drawHero() {
     );
 
     // VISOR
+
     ctx.fillStyle =
         "#142a41";
 
@@ -1042,6 +1691,7 @@ function drawHero() {
     );
 
     // CHEST DETAILS
+
     ctx.fillStyle =
         "#f2c83d";
 
@@ -1124,7 +1774,12 @@ function createExplosion() {
     ];
 
     // Main explosion
-    for (let i = 0; i < 180; i++) {
+
+    for (
+        let i = 0;
+        i < 180;
+        i++
+    ) {
 
         const angle =
             Math.random() *
@@ -1168,7 +1823,12 @@ function createExplosion() {
     }
 
     // Inner fireball
-    for (let i = 0; i < 65; i++) {
+
+    for (
+        let i = 0;
+        i < 65;
+        i++
+    ) {
 
         const angle =
             Math.random() *
@@ -1191,13 +1851,17 @@ function createExplosion() {
 
             vx:
                 Math.cos(angle) *
-                (30 +
-                Math.random() * 160),
+                (
+                    30 +
+                    Math.random() * 160
+                ),
 
             vy:
                 Math.sin(angle) *
-                (30 +
-                Math.random() * 160),
+                (
+                    30 +
+                    Math.random() * 160
+                ),
 
             life:
                 .5 +
@@ -1215,6 +1879,7 @@ function createExplosion() {
     }
 
     // Shockwave
+
     shockwaves.push({
         x: hero.x,
         y: hero.y,
@@ -1232,7 +1897,12 @@ function createExplosion() {
     });
 
     // Armor debris
-    for (let i = 0; i < 35; i++) {
+
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
 
         const angle =
             Math.random() *
@@ -1288,28 +1958,42 @@ function createExplosion() {
 
 function crash() {
 
-    if (state !== "playing") {
+    if (
+        state !== "playing"
+    ) {
         return;
     }
 
     state = "exploding";
 
     // Explosion sound
-    explosionSound.currentTime = 0;
-    explosionSound.play().catch(() => {});
+
+    if (
+        sfxEnabled
+    ) {
+
+        explosionSound.currentTime = 0;
+
+        explosionSound.play()
+            .catch(() => {});
+    }
 
     // Reset score immediately
+
     score = 0;
 
-    scoreEl.textContent = "0";
+    scoreEl.textContent =
+        "0";
 
     createExplosion();
 
     // Camera shake only.
     // There is NO white screen flash.
+
     shakePower = 35;
 
     // Automatically restart
+
     explosionTimer = 1.3;
 }
 
@@ -1321,7 +2005,9 @@ function crash() {
 function respawn() {
 
     // Stop and restart music
+
     music.pause();
+
     music.currentTime = 0;
 
     state = "playing";
@@ -1346,9 +2032,11 @@ function respawn() {
 
     // New buildings so we don't respawn
     // directly inside another one.
+
     resetBuildings();
 
     // Start the music again
+
     startMusic();
 }
 
@@ -1375,6 +2063,7 @@ function updateHero(dt) {
         );
 
     // Top / bottom
+
     if (
         hero.y -
         hero.height / 2 < 0 ||
@@ -1394,13 +2083,16 @@ function updateHero(dt) {
 
 function updateBuildings(dt) {
 
-    for (const b of buildings) {
+    for (
+        const b of buildings
+    ) {
 
         b.x -=
             buildingSpeed *
             dt;
 
         // Score
+
         if (
             !b.scored &&
             b.x + b.width < hero.x
@@ -1413,7 +2105,9 @@ function updateBuildings(dt) {
             scoreEl.textContent =
                 score;
 
-            if (score > best) {
+            if (
+                score > best
+            ) {
 
                 best = score;
 
@@ -1429,7 +2123,10 @@ function updateBuildings(dt) {
         }
 
         // Collision
-        if (heroHitsBuilding(b)) {
+
+        if (
+            heroHitsBuilding(b)
+        ) {
 
             crash();
 
@@ -1471,7 +2168,9 @@ function updateBuildings(dt) {
 
 function updateParticles(dt) {
 
-    for (const p of particles) {
+    for (
+        const p of particles
+    ) {
 
         p.x +=
             p.vx * dt;
@@ -1492,7 +2191,9 @@ function updateParticles(dt) {
 
 function drawParticles() {
 
-    for (const p of particles) {
+    for (
+        const p of particles
+    ) {
 
         ctx.globalAlpha =
             Math.max(
@@ -1527,7 +2228,10 @@ function drawParticles() {
 function updateExplosion(dt) {
 
     // Slowly move buildings
-    for (const b of buildings) {
+
+    for (
+        const b of buildings
+    ) {
 
         b.x -=
             buildingSpeed *
@@ -1536,6 +2240,7 @@ function updateExplosion(dt) {
     }
 
     // Fire particles
+
     for (
         const p of explosionParticles
     ) {
@@ -1566,11 +2271,16 @@ function updateExplosion(dt) {
         );
 
     // Shockwaves
-    for (const s of shockwaves) {
+
+    for (
+        const s of shockwaves
+    ) {
 
         s.radius +=
-            (s.maxRadius -
-            s.radius) *
+            (
+                s.maxRadius -
+                s.radius
+            ) *
             dt *
             5;
 
@@ -1585,7 +2295,10 @@ function updateExplosion(dt) {
         );
 
     // Debris
-    for (const d of debris) {
+
+    for (
+        const d of debris
+    ) {
 
         d.x +=
             d.vx * dt;
@@ -1610,6 +2323,7 @@ function updateExplosion(dt) {
         );
 
     // Shake fades away
+
     shakePower *=
         Math.pow(
             .05,
@@ -1635,6 +2349,7 @@ function updateExplosion(dt) {
 function drawExplosion() {
 
     // Localized explosion glow
+
     const gradient =
         ctx.createRadialGradient(
             hero.x,
@@ -1686,7 +2401,10 @@ function drawExplosion() {
     ctx.fill();
 
     // Shockwaves
-    for (const s of shockwaves) {
+
+    for (
+        const s of shockwaves
+    ) {
 
         ctx.save();
 
@@ -1734,6 +2452,7 @@ function drawExplosion() {
     }
 
     // Fire
+
     for (
         const p of explosionParticles
     ) {
@@ -1766,7 +2485,10 @@ function drawExplosion() {
     ctx.globalAlpha = 1;
 
     // Debris
-    for (const d of debris) {
+
+    for (
+        const d of debris
+    ) {
 
         ctx.save();
 
@@ -1814,7 +2536,10 @@ function draw() {
     ctx.save();
 
     // Explosion camera shake
-    if (shakePower > .1) {
+
+    if (
+        shakePower > .1
+    ) {
 
         ctx.translate(
             (Math.random() - .5) *
@@ -1829,17 +2554,26 @@ function draw() {
 
     drawSkyline();
 
-    for (const b of buildings) {
+    for (
+        const b of buildings
+    ) {
+
         drawBuilding(b);
     }
 
     drawParticles();
 
-    if (state === "playing") {
+    if (
+        state === "playing"
+    ) {
+
         drawHero();
     }
 
-    if (state === "exploding") {
+    if (
+        state === "exploding"
+    ) {
+
         drawExplosion();
     }
 
@@ -1865,13 +2599,16 @@ function loop(now) {
 
     // Prevent physics from exploding
     // if the browser pauses for a moment.
+
     dt =
         Math.min(
             dt,
             .035
         );
 
-    if (state === "playing") {
+    if (
+        state === "playing"
+    ) {
 
         updateHero(dt);
 
@@ -1883,9 +2620,8 @@ function loop(now) {
         }
 
         updateParticles(dt);
-    }
 
-    else if (
+    } else if (
         state === "exploding"
     ) {
 
